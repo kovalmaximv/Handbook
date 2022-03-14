@@ -15,6 +15,13 @@ Bean declaration хранит то, что мы и описали в xml (clss, 
 
 Важно, что синглтоны создаются сразу, а прототайпы по требованию (прототайпы в контейнер не складываются).
 
+#### Трехфазовый конструктор
+Идея в том, чтоб настроить Bean 
+
+1) Java construct. 
+2) @PostConstruct / init method (BeanPostProcessor). Для обращения к механизмам Spring.
+3) ApplicationContextListener. Может работать на этапах, когда контекст уже создан.
+
 #### Зачем нужен init метод
 Для модели двухфазного контроллера (controller -> init method).  
 Если мы обратимся к спринговым компонентам в контроллере, то получим NPE. `BeanInjection` происходит после создания 
@@ -23,3 +30,19 @@ Bean declaration хранит то, что мы и описали в xml (clss, 
 #### Зачем BeanPostProcessor нужно before и after initialization
 Если мы захотим обернуть наш объект в прокси, то делать это нужно на этапе post init.  
 Если сделать это на этапе before init, то в init метод вернется прокси, что может негативно сказаться на самом методе.
+
+#### ApplicationContextListener
+Данный интерфейс позволяет слушать ApplicationContext и как-то реагировать на его lifecycle events.  
+Его events в натуральном порядке:
+1) ContextStartedEvent
+2) ContextRefreshedEvent
+3) ContextStoppedEvent
+4) ContextClosedEvent
+
+Начиная со Spring 4.2 можно сделать вот так:
+```java
+@EventListener
+public void handleContextRefreshEvent(ContextStartedEvent ctxStartEvt) {
+    System.out.println("Context Start Event received.");
+}
+```
