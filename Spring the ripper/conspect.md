@@ -46,3 +46,24 @@ public void handleContextRefreshEvent(ContextStartedEvent ctxStartEvt) {
     System.out.println("Context Start Event received.");
 }
 ```
+
+#### BeanFactoryPostProcessor
+Позволяет повлиять на BeanFactory после его инициализации.   
+Например можно поправить определенный BeanDefinition. 
+
+Схема работы такая:
+1) BeanDefinitionReader читает XML -> генерит BeanDefinition
+2) BeanFactoryPostProcessor читает BeanDefinition -> как-то их изменяет **МЫ ТУТ**
+3) BeanFactory читает BeanDefinition -> кладет бины в IoC container
+
+#### История появлений DefinitionScanner
+#### Spring 1
+XML bean scanner. Читает определения бинов из XML конфига
+#### Spring 2
+ClassPathBeanDefinitionScanner. Создает BeanDefinition из всех классов аннотированных @Component и другими.
+#### Spring 3
+Java Config. Java конфиги обрабатывает класс ConfigurationClassPostProcessor, он создает BeanDefinition 
+из методов Java config.  
+Появилась возможность дебажить и тонко настраивать бины.
+#### Spring
+Groovy config. Определение бинов в groovy языке.
