@@ -67,3 +67,46 @@ Java Config. Java конфиги обрабатывает класс Configurati
 Появилась возможность дебажить и тонко настраивать бины.
 #### Spring
 Groovy config. Определение бинов в groovy языке.
+
+#### Обновление Prototype в Singletone
+1) Не очень хорошее решение  
+В Bean Scope поставить `proxyMode = TargetClass`.  
+! Новый бин создается при каждом обращении к нему (вызов метода, переменной, етс)
+2) Сделать Singleton абстрактным с фабричным методом получения Prototype.  
+
+```java
+class abstract Singleton {
+    public abstract Prototype getPrototype();
+}
+
+@Config
+class JavaConfig {
+    @Bean
+    @Scope("prototype")
+    public Prototype prototype() {
+        return prototype;
+    }
+    
+    @Bean
+    public Singleton singleton() {
+        return new Singleton() {
+            @Override
+            public Prototype getPrototype() {
+                return prototype();
+            }
+        }
+    }
+}
+```
+
+#### Создание кастмного Scope. 
+Логика может быть любой кастомной:
+
+1) Создать класс, имплементировать interface Scope и реализовать как минимум метод get.
+2) Создать BeanFactoryPostProcessor и там в beanFactory.registerScope.
+
+#### Быстродействие Spring
+![look_up_performance.png](../img/spring_performance/look_up_performance.png)
+![create_object_performance.png](../img/spring_performance/create_object_performance.png)
+![injection_performance.png](../img/spring_performance/injection_performance.png)
+![proxy_performance.png](../img/spring_performance/proxy_performance.png)
