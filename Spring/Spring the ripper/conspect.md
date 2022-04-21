@@ -106,7 +106,7 @@ class JavaConfig {
 2) Создать BeanFactoryPostProcessor и там в beanFactory.registerScope.
 
 #### Быстродействие Spring
-![look_up_performance.png](../img/spring_performance/look_up_performance.png)
-![create_object_performance.png](../img/spring_performance/create_object_performance.png)
-![injection_performance.png](../img/spring_performance/injection_performance.png)
-![proxy_performance.png](../img/spring_performance/proxy_performance.png)
+![look_up_performance.png](../../img/spring_performance/look_up_performance.png)
+![create_object_performance.png](../../img/spring_performance/create_object_performance.png)
+![injection_performance.png](../../img/spring_performance/injection_performance.png)
+![proxy_performance.png](../../img/spring_performance/proxy_performance.png)
