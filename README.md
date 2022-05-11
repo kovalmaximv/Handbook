@@ -1,2 +1,2 @@
-# SpringHandbook
-Structured information about Spring that I have read in different sources.
+# Handbook
+Карманный справочник, который содержит конспекты из прочитаной мною литературы
