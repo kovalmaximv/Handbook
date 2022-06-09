@@ -1,4 +1,0 @@
-1) ApplicationContext lifecycle events
-2) Bean lifecycle events
-3) ConfigurableApplicationContext
-4) BeanFactoryPostProcessor
