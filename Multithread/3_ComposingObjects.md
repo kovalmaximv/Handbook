@@ -70,7 +70,7 @@ public class LockExample {
 
 ```java
 @NotThreadSafe
-public class MutableSeat() {
+public class MutableSeat {
     public boolean reserved;
 
     public MutableSeat() {
@@ -85,7 +85,7 @@ public class MutableSeat() {
 ...
 
 @ThreadSafe
-public class CinemaTracker() {
+public class CinemaTracker {
     private final Map<Integer, MutableSeat> seats;
 
     public CinemaTracker(Map<Integer, MutableSeat> seats) {
@@ -137,7 +137,7 @@ public class CinemaTracker() {
 ```java
 @Immutable
 @ThreadSafe
-public class ImmutableSeat() {
+public class ImmutableSeat {
     public final boolean reserved;
 
     public MutableSeat(boolean reserved) {
@@ -148,7 +148,7 @@ public class ImmutableSeat() {
 ...
 
 @ThreadSafe
-public class DelegatingCinemaTracker() {
+public class DelegatingCinemaTracker {
     private final ConcurrentHashMap<Integer, ImmutableSeat> seats;
     private final Map<Integer, ImmutableSeat> unmodifiableCopy;
 
@@ -223,3 +223,126 @@ public class NumberRange {
 > между состояниями, то он может делегировать потокобезопасность своим компонентам.**
 
 #### Публикация базовых переменных состояния
+Если переменная состояния является потокобезопасной, не участвует в инвариантах, ограничивающих ее значение, и не имеет 
+запрещенных переходов из состояния в состояние, то она может быть опубликована
+
+#### Пример трекера кинотеатра публикующего свое состояние
+```java
+@ThreadSafe
+public class ThreadSafeSeat {
+    private boolean reserved;
+
+    public MutableSeat() {
+        reserved = false;
+    }
+
+    public MutableSeat(MutableSeat seat) {
+        this.reserved = seat.reserved;
+    }
+    
+    public synchronized boolean getReserved() {
+        return reserved;
+    }
+    
+    public synchronized void setReserved(boolean reserved) {
+        this.reserved = reserved;
+    }
+}
+
+@ThreadSafe
+public class PublishingCinemaTracker {
+    private final ConcurrentHashMap<Integer, ThreadSafeSeat> seats;
+    private final Map<Integer, ThreadSafeSeat> unmodifiableCopy;
+
+    public DelegatingCinemaTracker(Map<Integer, ThreadSafeSeat> seats) {
+        seats = new ConcurrentHashMap<>(seats);
+        unmodifiableCopy = Collections.unmodifiableMap(seats);
+    }
+
+    public Map<Integer, ThreadSafeSeat> getSeats() {
+        return unmodifiableCopy;
+    }
+
+    public ThreadSafeSeat getSeat(Integer id) {
+        return seats.get(id);
+    }
+
+    public void setSeat(Integer id, boolean reserved) {
+        if (seats.contains(id)) {
+            throw new RuntimeException();
+        }
+        seats.get(id).set(reserved);
+    }
+}
+```
+
+Благодаря тому, что состояние места теперь мутируемое, вызывающие элементы кода могут менять состояние места. 
+Весь этот пример получился потокобезопасным, потому что PublishingCinemaTracker не накладывает дополнительные 
+ограничения на состояния места и потому что класс состояния места является потокобезопасным.
+
+## Добавление функциональности в существующие потокобезопасные классы
+#### Блокировка на стороне клиента
+Попробуем добавить атомарный функционал "добавить если отсутствует" в стандартный класс List.
+
+```java
+@NotThreadSafe
+public class ListHelper<T> {
+    public List<T> list = Collections.synchronizedList(new ArrayList<T>());
+    
+    public synchronized boolean putIfAbsent(T x) {
+        boolean absent = !list.contains(x);
+        if (absent) {
+            list.add(x);
+        }
+        return absent;
+    }
+}
+```
+
+Почему класс по итогу получился NotThreadSafe? Хоть метод putIfAbsent и синхронизирован, но синхронизация 
+происходит на неправильном ключе. Другие операции нашего `list` использует другой клич, поэтому метод `putIfAbsent` 
+не воспринимается другими операциями как атомарный. 
+
+Исправить эту проблему может _блокировка на стороне клиента_. Мы защитим клиентский код, который использует некий 
+объект Х, собственным замком объекта Х. Необходимо только узнать, что это за замок, благо большинство 
+потокобезопасных коллекций и объектов в документации указывают этот замок.
+
+```java
+@ThreadSafe
+public class ListHelper<T> {
+    public List<T> list = Collections.synchronizedList(new ArrayList<T>());
+    
+    public boolean putIfAbsent(T x) {
+        synchronized (this) {
+            boolean absent = !list.contains(x);
+            if (absent) {
+                list.add(x);
+            }
+            return absent; 
+        }
+    }
+}
+```
+
+#### Компоновка
+Так же добавить атомарную операцию в существующий класс поможет _компоновка_. Пример ниже использует этот подход:
+```java
+@ThreadSafe
+public class ImprovedList<T> implements List<T> {
+    private final List<T> list;
+    
+    public ImprovedList(List<T> list) { this.list = list; }
+    
+    public synchronized boolean putIfAbsent(T x) {
+        boolean absent = !list.contains(x);
+        if (absent) {
+            list.add(x);
+        }
+        return absent;
+    }
+    
+    public synchronized void clear() {
+        // ... делегировать остальные методы схожим образом
+    }
+}
+```
