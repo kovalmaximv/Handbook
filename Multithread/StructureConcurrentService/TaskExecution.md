@@ -148,8 +148,6 @@ ExecutorService переводится в терминированный ста�
 Попробуем дописать наш веб сервер с поддержкой жизненного цикла веб сервера:
 
 ```java
-import java.util.concurrent.ExecutorService;
-
 class LifecycleWebServer {
     private static final int NUMBER_THREADS = 100;
     private static final Executor executor = Executors.newFixedThreadPool(NUMBER_THREADS);
