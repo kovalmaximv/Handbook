@@ -9,7 +9,7 @@
 Большинство серверных приложений в качестве границы одной задачи предлагают индивидуальные клиентские запросы. Сервер
 принимает запрос от удаленных клиентов, обрабатывают их одновременно и независимо друг от друга.
 
-В этой главе мы будем в качестве примера разрабатывать каркас HTTP сервера. Рассмотрим пример последовательной 
+В этой главе мы будем в качестве примера разрабатывать каркас веб сервера. Рассмотрим пример последовательной 
 обработки запроса
 
 ```java
@@ -27,7 +27,7 @@ class SingleThreadServer {
 ```
 
 #### Явное создание потоков для задач
-Сделаем наш HTTP сервер многопоточным
+Сделаем наш веб сервер многопоточным
 
 ```java
 class ThreadPerTaskWebServer {
@@ -77,7 +77,7 @@ public interface Executor {
 5) Как система должна себя вести при перегрузке
 
 
-Попробуем написать HTTP сервер с использованием Executor
+Попробуем написать веб сервер с использованием Executor
 ```java
 class TaskExecutionWebServer {
     private static final int NUMBER_THREADS = 100;
@@ -120,4 +120,52 @@ newFixedThreadPool(1) в том, что newSingleThreadPool гарантиров
 
 newFixedThreadPool и newCachedThreadPool возвращают ThreadPoolExecutor, который может быть дополнительно конфигурирован.  
 
-#### Жизненный цикл исполнителя Executor
+#### Завершение работы Executor
+JVM ждет окончания всех процессов, поэтому если Executor по какой-то причине не может завершиться, это не позволяет
+JVM завершить работу.
+
+Интерфейс ExecutorService расширяет интерфейс Executor добавляя возможность управления жизненным циклом:
+
+```java
+public interface ExecutorService extends Executor {
+    void shutdown();
+    List<Runnable> shutdownNow();
+    boolean isShutdown();
+    boolean isTerminated();
+    boolean awaitTermination(long timeout, TimeUnit unit);
+    // etc
+}
+```
+
+Жизненный цикл имеет 3 состояния: работает, выключается и терминирован.
+
+Метод shutdown инициализирует завершение работы ExecutorService. Новые задачи, приходящие в submit отправляются в 
+очередь отмененных задач, однако уже принятые задачи будут ожидать выполнения. После завершения всех задач из очереди, 
+ExecutorService переводится в терминированный статус.
+
+Метод shutdownNow пытается отменить невыполненные задачи и не берет в работу задачи из очереди ожидания.
+
+Попробуем дописать наш веб сервер с поддержкой жизненного цикла веб сервера:
+
+```java
+import java.util.concurrent.ExecutorService;
+
+class LifecycleWebServer {
+    private static final int NUMBER_THREADS = 100;
+    private static final Executor executor = Executors.newFixedThreadPool(NUMBER_THREADS);
+    
+    public void start() {
+        ServerSocket server = new ServerSocket(80);
+        while (!executor.isShutdown()) {
+            final Socket connection = server.accept();
+            executor.execute(() -> handleRequest(connection));
+        }
+    }
+    
+    public void stop() {
+        executor.shutdown();
+    }
+}
+```
+
+#### Отложенные и периодические задачи
