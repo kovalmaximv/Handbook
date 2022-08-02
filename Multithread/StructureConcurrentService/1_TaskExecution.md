@@ -167,3 +167,176 @@ class LifecycleWebServer {
 ```
 
 #### Отложенные и периодические задачи
+Класс ScheduledThreadPoolExecutor выполняет отложенные и периодические задачи.
+
+Исполнитель ScheduledThreadPoolExecutor заменяет проблемный класс Timer, у которого был целый пласт проблем.
+
+## Поиск пригодной степени параллелизма
+Чтобы использовать Executor, вы должны описать свою задачу как Runnable. В большинстве серверных приложений 
+существует отличная граница: один клиентский запрос. 
+
+Но иногда хорошие границы не так очевидны. В некоторых случаях может существовать задача в рамках запроса, 
+которую тоже неплохо бы выполнить в отдельном потоке.
+
+Рассмотрим пример, в котором будем реализовывать отрисовщик html страницы. В этом примере рассмотрим степень проработки
+параллельности одного клиентского запроса. Начнем с простого подхода 1 запрос - 1 поток, с каждой итерацией будем 
+прорабатывать паралеллизм. 
+
+#### Последовательный подход
+Будем отрсисовывать сначала текстовые элементы, а затем изображения:
+
+```java
+public class SingleThreadRenderer {
+    void renderPage(String source) {
+        renderText(source);
+        
+        List<ImageData> imageDatas = new ArrayList<ImageData>();
+        for (ImageInfo imageInfo: scanForImageInfo(source)) {
+            imageDatas.add(imageInfo.downloadImage());
+        }
+        for(ImageData data: imageDatas) {
+            renderImage(data);
+        }
+    }
+}
+```
+Скачивание изображения, чтение данных, запись данных: все это в основном включает в себя ожидание завершения 
+ввода-вывода. Поэтому последовательный подход может недостаточно использовать мощности процессора. Попробуем добавить 
+паралеллизм нашему классу.
+
+#### Использование Callable и Future
+Executor использует интерфейс Runnable для выполнения задач. Однако данный интерфейс неспособен возвращать значения 
+или выдавать проверяемые исключения. Зато все это умеет делать интерфейс _Callable_, его мы и используем.
+
+Жизненный цикл задач состоит из этапов: создана, представлена, запущена и завершена. Мы хотим уметь отменять задачу, 
+если что-то пошло не так. В структуре Executor задачи, которые еще не были запущены, могут быть отменены. 
+Запущенные задачи могут быть отменены, только если они откликаются на прерывание. 
+
+Интерфейс Future предоставляет методы, позволяющие проверять и управлять жизненным циклом задачи.
+
+```java
+public interface Callable<V> {
+    V call() throws Exception;
+}
+
+public interface Future<V> {
+    boolean cancel(boolean mayInterruptIfRunning);
+    boolean isCancelled();
+    boolean isDone();
+    V get() throws ManyExceptions;
+}
+```
+
+ExecutorService может принимать Runnable или Callable, а все методы _ExecutorService.submit()_ возвращают объект Future.
+Такой подход предоставляет простое управление жизненным циклом задчи.
+
+Используя полученные знания, попробуем сделать наш отрисовщик чуть более конкрунтеным. Разделим отрисовщик на две 
+подзадачи: отрисовку текста и скачивание изображений:
+
+```java
+public class FutureRenderer {
+    private final int NUMBER_THREADS = 100;
+    private final Executor executor = Executors.newFixedThreadPool(NUMBER_THREADS);
+
+    void renderPage(String source) {
+        final List<ImageInfo> imageInfoList = scanForImageInfo(source);
+        Callable<List<ImageData>> task = () -> {
+                List<ImageData> result = new ArrayList<>();
+                for (ImageInfo imageInfo: imageInfoList) {
+                    result.add(imageInfo.downloadImage());
+                }
+                return result;
+        };
+        
+        Future<List<ImageData>> future = executor.submit(task);
+        renderText(source);
+        
+        try {
+            List<ImageData> imageDataList = future.get();
+            for (ImageData data: imageDataList) {
+                renderImage(data);
+            }
+        } catch (InterruptedException e) {
+            future.cancel(true); // отменяем задачу
+            Thread.currentThread().interrupt(); // прерываем поток выполнения 
+        } catch (OtherException e) {
+            // smth
+        }
+    }
+}
+```
+
+В данном примере мы создали Callable для скачивания _всех_ изображений. Когда главный поток дойдет до точки, где ему
+потребуется отрисовка изображений, он вызовет _future.get()_. Даже если все изображения не успели скачаться, мы все 
+равно получим небольшое преимущество в производительности.
+
+В этом подходе есть один недостаток, пользователю нет необходимости ждать, когда скачаются _все_ изображения. 
+Возможно будет лучше видеть изображения по мере их скачивания.
+
+#### CompletionService (Executor + BlockingQueue)
+Если есть пакет задач, которые выполняет Executor, и нам необходимо извлекать результаты по мере выполнения, 
+необходимо использовать CompletionService.
+
+Принцип работы ExecutorCompletionService прост: конструктор создает очередь BlockingQueue для хранения 
+завершенных результатов. Future, при успешном выполнении, попадает в эту очередь.
+
+Попробуем использовать CompletionService для нашего отрисовщика. Благодаря тому, что каждое изображение будет 
+скачиваться в отдельном потоке, мы улучшим производительность. А если отрисовывать картинки по мере их скачивания, это 
+улучшит отзывчивость системы.
+
+```java
+public class Renderer {
+    private final int NUMBER_THREADS = 100;
+    private final Executor executor = Executors.newFixedThreadPool(NUMBER_THREADS);
+
+    void renderPage(String source) {
+        final List<ImageInfo> info = scanForImageInfo(source);
+        CompletionService<ImageData> completionService = new ExecutorCompletionService<ImageData>(executor);
+        for (final ImageInfo imageInfo : info) {
+            completionService.submit(() -> imageInfo.downloadImage());
+        }
+        
+        renderText(source);
+        
+        try {
+            for (int i = 0; i < info.size(); i++) {
+                Future<ImageData> future = completionService.take();
+                ImageData imageData = future.get();
+                renderImage(imageData);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (OtherException e) {
+            // smth
+        }
+    }
+}
+```
+
+#### Ограничение времени выполнения задачи
+Сделать это можно с помощью хронометрированной версии Future.get(). Метод возвращает результат по готовности, но 
+выдает TimeoutException, если результат не готов пределах указанного времени.
+
+```java
+public class TimedFutureGet {
+    public void timedFutureGet(long timeBudget) {
+        // ...
+        try {
+            future.get(timeBudget, NANOSECONDS);
+        } catch (TimeoutException e) {
+            future.cancel(true);
+        }
+    }
+}
+```
+
+У ExecutorService есть хронометрированная версия invokeAll, которая принимает список задач и время на их выполнение.
+Данная версия invokeAll возвратится после завершения всех задач, прерывания потока или по таймауту. Все задачи, которые 
+не были завершены по истечении таймаута, отменяются.
+
+# Итоги
+
+- Структурирование задачи вокруг выполнения _задач_ упрощает разработку и способствует конкурентности. 
+- Executor позволяет разделить предоставление задач от их выполнения и поддерживает разные режимы пула потоков.
+- Всякий раз, когда вы создаете потоки для выполнения задач, рассмотрите возможность использования Executor.
+- Чтобы получить максимальную выгоду из разбиения задач на потоки, необходимо определить разумные границы задач.
