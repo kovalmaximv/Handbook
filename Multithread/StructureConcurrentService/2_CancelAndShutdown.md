@@ -53,3 +53,61 @@ public class PrimeGenerator implements Runnable {
 ```
 
 #### Прерывание
+Если задача использует блокирующие метода (напр. BlockingQueue.put), то такая проверка может ни разу не сработать и 
+задача не отменится (поскольку поток выполнения заблокирован).
+
+В таких случаях стоит использовать _прерывание_, блокирующие библиотечные методы поддерживают прерывание.
+
+Каждый поток имеет флаг прерванности (interrupted status). Объект Thread содержит метод _interrupt_, прерывающий поток, 
+метод _isInterrupted_, возвращающий флаг прерванности. Очистить статус прерванности можно статическим методом 
+_interrupted_.
+```java
+public class Thread {
+    public void interrupt() {...}
+    public void isInterrupted() {...}
+    public static boolean interrupted() {...}
+}
+```
+
+> :exclamation: **Метод interrupt не побуждает целевой поток остановиться, он только доставляет сообщение с 
+> просьбой остановки при удобной возможности.**
+
+Блокирующие библиотечные методы (BlockingQueue.put, Thread.sleep, etc) быстро отзываются на прерывание, очищают
+статус прерванности и выдают исключение InterruptedException. 
+
+Очищение статуса прерванности следует использовать осторожно. Если вы не планируете проигнорировать прерывание, то 
+нужно либо восстановить статус прерванности (вызвав метод interrupt), либо выкинуть исключение InterruptedException.
+
+> :exclamation: **Прерывание является самым разумным способом отмены.**
+
+Попробуем улучшить наш генератор простых чисел с использованием прерывания:
+
+```java
+public class PrimeGenerator implements Runnable {
+    private final BlockingQueue<BigInteger> primes;
+
+    public PrimeGenerator(BlockingQueue<BigInteger> primes) {
+        this.primes = primes;
+    }
+    
+    public void run() {
+        try {
+            BigInteger p = BigInteger.ONE;
+            while (!Thread.currentThread().isInterrupted()) {
+                primes.put(p.nextProbablePrime());
+            } catch(InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    public void cancel() {
+        interrupt();
+    }
+}
+```
+
+В примере выше есть две точки обнаружения прерывания. Явная проверка в условии цикла не является строго необходимой, 
+но позволяет произвести проверку _перед_ тяжелой операцией подсчета следующего простого числа. 
+
+#### Политика прерывания
