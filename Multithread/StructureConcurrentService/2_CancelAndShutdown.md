@@ -156,4 +156,4 @@ public Task getNextTask(BlockingQueue<Task> queue) {
 if (Thread.currentThread().isInterrupted()) {...}
 ```
 
-#### Пример: хронометрированный прогон (а этот пример вообще нужен?)
+#### Отмена с помощью Future
