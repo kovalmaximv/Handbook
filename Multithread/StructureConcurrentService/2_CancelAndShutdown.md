@@ -19,45 +19,7 @@
 2) Когда задача проверяет наличие запроса на отмену
 3) Какие действия задача предпринимает на запрос об отмене
 
-Попробуем написать механизм отмены задачи, начиная с самого простого решения, с каждым разом будем немного 
-улучшать решение. 
-
-#### Флаг "запрошена отмена"
-
-Самым простейшим механизмом отмены является установка флажка "запрошена отмена", который задача периодически проверяет. 
-Рассмотрим пример такого подхода:
-
-```java
-public class PrimeGenerator implements Runnable {
-    private final List<BigInteger> primes = new ArrayList<>();
-    private volatile boolean cancelled; 
-    
-    public void run() {
-        BigInteger p = BigInteger.ONE;
-        while (!cancelled) {
-            p = p.nextProbablePrime();
-            synchronized (this) {
-                primes.add(p);
-            }
-        }
-    }
-    
-    public void cancel() {
-        cancelled = true;
-    }
-    
-    public synchronized List<BigInteger> get() {
-        return new ArrayList<>(primes);
-    }
-}
-```
-
 #### Прерывание
-Если задача использует блокирующие метода (напр. BlockingQueue.put), то такая проверка может ни разу не сработать и 
-задача не отменится (поскольку поток выполнения заблокирован).
-
-В таких случаях стоит использовать _прерывание_, блокирующие библиотечные методы поддерживают прерывание.
-
 Каждый поток имеет флаг прерванности (interrupted status). Объект Thread содержит метод _interrupt_, прерывающий поток, 
 метод _isInterrupted_, возвращающий флаг прерванности. Очистить статус прерванности можно статическим методом 
 _interrupted_.
@@ -157,3 +119,37 @@ if (Thread.currentThread().isInterrupted()) {...}
 ```
 
 #### Отмена с помощью Future
+Future позволяет управлять жизненным циклом задачи, попробуем написать отмену задачи с использованием Future.
+
+Объект Future содержит метод cancel, который доставляет до задачи запрос на отмену. Аргумент в методе прерывает поток 
+задачи (если она запущена). Future.cancel(true) можно вызывать при отмене задач, работающих в стандартном 
+исполнителе Executor. 
+
+Рассмотрим пример использования Future для отмены задач:
+```java
+public static void timedRun(Runnable r, long timeout, TimeUnit unit) throws InterruptedException {
+    Future<?> task = executor.submit(r);
+    try {
+        task.get(timeout, unit);
+    } catch (TimeoutException e) {
+        // отменяем задачу в блоке finally
+    } catch (ExecutionException e) {
+        throw new SomeException();
+    } finally {
+        task.cancel(true);
+    }
+}
+```
+
+## Остановка поточного сервиса (Stopping thread-based services)
+Приложение обычно создают сервисы, которые владеют потоками (напр. ExecutionService). Приложение не владеет потоками 
+напрямую и не должно пытаться останавливать потоки напрямую. Вместо этого управление жизненным циклом потоков 
+предоставляется сервису.
+
+Сервис должен предоставлять методы жизненного цикла для выключения потоков. Например, сервис ExecutionService 
+предоставляет методы shutdown и shutdownNow. 
+
+> :exclamation: **Предоставляйте методы жизненного цикла, если владеющий потоком сервис живет дольше метода, 
+> который его вызвал.**
+
+Рассмотрим пример
