@@ -152,4 +152,114 @@ public static void timedRun(Runnable r, long timeout, TimeUnit unit) throws Inte
 > :exclamation: **Предоставляйте методы жизненного цикла, если владеющий потоком сервис живет дольше метода, 
 > который его вызвал.**
 
-Рассмотрим пример
+Рассмотрим пример, напишем небольшой сервис логирования с примитивным способом отключения: 
+
+```java
+public class LogWriterService {
+    private final BlockingQueue<String> queue;
+    private final LoggerThread logger;
+    private boolean shutDownRequested = false;
+
+    public LogWriterService(Writer writer) {
+        this.queue = new LinkedBlockingQueue<>();
+        this.logger = new LoggerThread(writer);
+    }
+
+    public void start() {
+        logger.start();
+    }
+    
+    public void shutdown() {
+        this.shutDownRequested = true;
+    }
+
+    public void log(String msg) throws InterruptedException {
+        if (!this.shutDownRequested) {
+            queue.put(msg);
+        } else {
+            throw new IllegalStateException("LogWriter disabled");
+        }
+    }
+
+    private class LoggerThread extends Thread {
+        private final PrintWriter writer;
+
+        //...
+
+        public void run() {
+            try {
+                while (true) {
+                    writer.println(queue.take());
+                }
+            } catch (InterruptedException ignored) {
+            } finally {
+                writer.close();
+            }
+        }
+    }
+}
+```
+Однако такой подход содержит состояние гонки, присутствует подход "проверить, а затем действовать". Производители 
+(producers) могут увидеть устаревшее состояние флага и отправить сообщение в очередь после ее выключения.
+
+Решить такую проблему может наличие замка на методах проверки и обновлении флага:
+
+```java
+public class LogWriterService {
+    private final BlockingQueue<String> queue;
+    private final LoggerThread loggerThread;
+    private boolean shutDownRequested = false;
+    private int logsWaitingInQueue = 0;
+
+    // ...
+
+    public void start() {
+        loggerThread.start();
+    }
+
+    public void stop() {
+        synchronized (this) {
+            shutDownRequested = true;
+        }
+        loggerThread.interrupt();
+    }
+
+    public void log(String msg) throws InterruptedException {
+        synchronized (this) {
+            if (shutDownRequested) {
+                throw new IllegalStateException();
+            }
+            logsWaitingInQueue++;
+        }
+        
+        queue.put(msg);
+    }
+
+    private class LoggerThread extends Thread {
+        //...
+
+        public void run() {
+            try {
+                while (true) {
+                    try {
+                        synchronized (this) {
+                            if (shutDownRequested && logsWaitingInQueue == 0) {
+                                break;
+                            }
+                        }
+                        String msg = queue.take();
+                        synchronized (this) {
+                            logsWaitingInQueue--;
+                        }
+                        writer.println(msg);
+                    } catch (InterruptedException e) {
+                        // не делаем ничего, повторная попытка чтения
+                    }
+                }
+            } finally {
+                writer.close();
+            }
+        }
+    }
+}
+```
