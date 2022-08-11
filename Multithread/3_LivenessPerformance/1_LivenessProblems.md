@@ -36,3 +36,118 @@ public class LeftRightDeadLock {
 ```
 Оба метода приобретают левый и правый замки, в случае неудачной временной координации два потока могут 
 заблокироваться следующим образом:
+![deadlock_example](../../img/multithread/deadlock_example.jpg)
+
+Взаимная блокировка возникла, потому что два потока приобретали одинаковые замки в _разном порядке_. Если обеспечить, 
+чтобы все потоки приобретали одинаковые замки в одинаковом порядке, то такую проблему можно избежать.
+
+> :exclamation: **Чтобы избавиться от взаимной блокировки, возникающей из-за порядка блокировки, необходимо чтобы 
+> все потоки приобретали замки в фиксированном глобальном порядке.**
+
+#### Взаимные блокировки из-за динамического порядка следования замков
+В некоторых случаях мы не владеем порядком блокировки, в таких случаях возникает динамический порядок 
+следования замков. Рассмотрим пример:
+```java
+public void transferMoney(Account fromAccount, Account toAccount) {
+    synchronized(fromAccount) {
+        synchronized(toAccount) {
+            fromAccount.debit(300);
+            toAccount.credit(300);
+        }
+    }
+}
+```
+Может показаться, что все потоки приобретают замки в одном и том же порядке. На самом деле порядок следования замков 
+динамичный и зависит от передаваемых аргументов. Блокировка может возникнуть, если два потока одновременно вызывают 
+метод, один переводит деньги `X -> Y`, а другой переводит деньги `Y -> X`. При неудачной координации поток А 
+приобретает замок на аккаунт Х и будет ожидать замок на аккаунт Y, в то время как поток В приобретает замок 
+на аккаунт Y и будет ожидать замок на аккаунт X.
+
+От взаимных блокировок подобного рода можно избавиться, если закрепить порядок блокировки для объектов. Самый простой 
+способ, использовать некоторый идентификатор объекта. В нашем случае подошел бы `account.id`. Порядок приобретения 
+замков тогда можно было бы определить как от большего ключа к меньшему.
+
+Если у объекта нет идентификатора, можно использовать `System.identityHashCode`. По численному значения хеша 
+можно определить порядок приобретения блокировок. Важно учесть случай, когда объекты имеют одинаковый хеш код, в 
+таких случаях можно сначала приобрести замок на некоторый сторонний объект. Пример данного подхода:
+```java
+private static final Object tieLock;
+
+public void transferMoney(Account fromAccount, Account toAccount) {
+    int fromHash = System.identityHashCode(fromAccoutn);
+    int toHash = System.identityHashCode(toAccoutn);
+    
+    if (fromHash < toHash) {
+        synchronized (fromAccount) {
+            synchronized(toAccount) {
+                // transfer money
+            }
+        }
+    } else if (toHash < fromHash) {
+        synchronized(toAccount) {
+            synchronized(fromAccount) {
+                // transfer money
+            }
+        }
+    } else {
+        synchronized(tieLock) {
+            synchronized (fromAccount) {
+                synchronized(toAccount) {
+                    // transfer money
+                }
+            }
+        }
+    }
+}
+```
+
+#### Взаимные блокировки между взаимодействующими методами
+Вложенное замковое приобретение не всегда так очевидно, как в предыдущих примерах, два замка не обязательно будут 
+приобретены в рамках одного метода или даже в рамках одного объекта. Рассмотрим пример:
+```java
+class Taxi {
+    private Point location, destination;
+    private final Dispatcher dispatcher;
+    
+    public synchronized Point getLocation() {
+        return location;
+    }
+    
+    public synchronized void setLocation(Point location) {
+        this.location = location;
+        if (location.equals(destination)) {
+            dispatcher.notifyAvailable(this);
+        }
+    }
+}
+
+class Dispatcher {
+    private final Set<Taxi> taxis;
+    private final Set<Taxi> availableTaxis;
+    
+    public synchronized void notifyAvailable(Taxi taxi) {
+        availableTaxis.add(taxi);
+    }
+    
+    public synchronized Image getImage() {
+        Image image = new Image();
+        for (Taxi t: taxis) {
+            image.drawMarker(t.getLocation());
+        }
+        return image;
+    }
+}
+```
+
+Хотя ни один метод не приобретает два замка явным образом, методы setLocation и getImage могут приобрести два замка. 
+Поскольку оба метода синхронизированы, поток вызывающий метод setLocation приобретает замок Taxi и затем 
+замок Dispatcher. Схожим образом метод getImage приобретает замок Dispatcher, а затем каждый замок taxi. Так же, как в 
+предыдущих случаях, два потока рискуют быть заперты взаимной блокировкой.
+
+Обнаружить возможность такой взаимной блокировки сложнее. Предупреждающим признаком является то, что _чужой_ метод 
+вызывается, пока замок удерживается.
+
+> :exclamation: **Активировать чужой метод с удержанием замка - плохая затея. Чужой метод может приобретать другие 
+> замки (рискуя быть запертым взаимной блокировкой) или выполняться неожиданно долго, удерживая при этом замок.** 
+
+#### Открытые вызовы
