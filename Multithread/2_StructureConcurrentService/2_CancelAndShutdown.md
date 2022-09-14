@@ -42,36 +42,6 @@ public class Thread {
 
 > :exclamation: **Прерывание является самым разумным способом отмены.**
 
-Попробуем улучшить наш генератор простых чисел с использованием прерывания:
-
-```java
-public class PrimeGenerator implements Runnable {
-    private final BlockingQueue<BigInteger> primes;
-
-    public PrimeGenerator(BlockingQueue<BigInteger> primes) {
-        this.primes = primes;
-    }
-    
-    public void run() {
-        try {
-            BigInteger p = BigInteger.ONE;
-            while (!Thread.currentThread().isInterrupted()) {
-                primes.put(p.nextProbablePrime());
-            } catch(InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
-    }
-
-    public void cancel() {
-        interrupt();
-    }
-}
-```
-
-В примере выше есть две точки обнаружения прерывания. Явная проверка в условии цикла не является строго необходимой, 
-но позволяет произвести проверку _перед_ тяжелой операцией подсчета следующего простого числа. 
-
 #### Политика прерывания
 Потокам необходима политика прерывания, определяющая, как они интерпретируют запросы на прерывание.
 
@@ -81,7 +51,7 @@ public class PrimeGenerator implements Runnable {
 Таким образом, с прерыванием потока придется разбираться владельцу этого потока, а он наверняка знает лучше, 
 как прервать этот поток.
 
-Получается, что задача никак не может прервать поток. Она может или сохранить статус прерванности, проигнорировав его, 
+Получается, что задача не должна прерывать поток. Она может или сохранить статус прерванности, проигнорировав его, 
 либо выкинуть исключение InterruptedException. И в первом, и во втором случае с прерыванием будет разбираться владелец 
 потока.
 
@@ -121,8 +91,8 @@ if (Thread.currentThread().isInterrupted()) {...}
 #### Отмена с помощью Future
 Future позволяет управлять жизненным циклом задачи, попробуем написать отмену задачи с использованием Future.
 
-Объект Future содержит метод cancel, который доставляет до задачи запрос на отмену. Аргумент в методе прерывает поток 
-задачи (если она запущена). Future.cancel(true) можно вызывать при отмене задач, работающих в стандартном 
+Объект Future содержит метод cancel, который доставляет до задачи запрос на отмену. Future.cancel(true) прерывает поток
+задачи (если она запущена). Этот метод можно вызывать при отмене задач, работающих в стандартном 
 исполнителе Executor. 
 
 Рассмотрим пример использования Future для отмены задач:
@@ -151,114 +121,6 @@ public static void timedRun(Runnable r, long timeout, TimeUnit unit) throws Inte
 
 > :exclamation: **Предоставляйте методы жизненного цикла, если владеющий потоком сервис живет дольше метода, 
 > который его вызвал.**
-
-Рассмотрим пример, напишем небольшой сервис логирования с примитивным способом отключения: 
-
-```java
-public class LogWriterService {
-    private final BlockingQueue<String> queue;
-    private final LoggerThread logger;
-    private boolean shutDownRequested = false;
-
-    public LogWriterService(Writer writer) {
-        this.queue = new LinkedBlockingQueue<>();
-        this.logger = new LoggerThread(writer);
-    }
-
-    public void start() {
-        logger.start();
-    }
-    
-    public void shutdown() {
-        this.shutDownRequested = true;
-    }
-
-    public void log(String msg) throws InterruptedException {
-        if (!this.shutDownRequested) {
-            queue.put(msg);
-        } else {
-            throw new IllegalStateException("LogWriter disabled");
-        }
-    }
-
-    private class LoggerThread extends Thread {
-        private final PrintWriter writer;
-
-        //...
-
-        public void run() {
-            try {
-                while (true) {
-                    writer.println(queue.take());
-                }
-            } catch (InterruptedException ignored) {
-            } finally {
-                writer.close();
-            }
-        }
-    }
-}
-```
-Однако такой подход содержит состояние гонки, присутствует подход "проверить, а затем действовать". Производители 
-(producers) могут увидеть устаревшее состояние флага и отправить сообщение в очередь после ее выключения.
-
-Решить такую проблему может наличие замка на методах проверки и обновлении флага:
-
-```java
-public class LogWriterService {
-    // ...
-    
-    private boolean shutDownRequested = false;
-    private int logsWaitingInQueue = 0;
-
-    // ...
-
-    public void stop() {
-        synchronized (this) {
-            shutDownRequested = true;
-        }
-        loggerThread.interrupt();
-    }
-
-    public void log(String msg) throws InterruptedException {
-        synchronized (this) {
-            if (shutDownRequested) {
-                throw new IllegalStateException();
-            }
-            logsWaitingInQueue++;
-        }
-        
-        queue.put(msg);
-    }
-
-    private class LoggerThread extends Thread {
-        //...
-
-        public void run() {
-            try {
-                while (true) {
-                    try {
-                        synchronized (this) {
-                            if (shutDownRequested && logsWaitingInQueue == 0) {
-                                break;
-                            }
-                        }
-                        String msg = queue.take();
-                        synchronized (this) {
-                            logsWaitingInQueue--;
-                        }
-                        writer.println(msg);
-                    } catch (InterruptedException e) {
-                        // не делаем ничего, повторная попытка чтения
-                    }
-                }
-            } finally {
-                writer.close();
-            }
-        }
-    }
-}
-```
 
 Еще один способ остановки Producer-Consumer называется ядовитая таблетка (_poison pill_). При таком подходе Producer 
 отправляет в очередь какое-то специальное сообщение, дающее сигнал Consumer остановиться.
@@ -316,7 +178,6 @@ JVM может выключаться упорядоченно или внеза
 
 # Итоги
 
-- Прервать выполнение кода можно на уровне: задач, потоков, сервисов. 
 - Язык Java не предоставляет упреждающий механизм для отмены действий или терминации потоков. Вместо этого 
 предоставляется кооперативный механизм прерывания. 
 - Реализация протоколов отмены (на основе механизма прерывания) и их правильное применение зависит от вас.
