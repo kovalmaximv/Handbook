@@ -1,0 +1,14 @@
+apiVersion: v1 # Версия API kubernetes
+kind: Pod # Что мы создаем? Далее тут может быть Service, Deploy, etc
+metadata:
+  name: first-pod # Имя пода
+  labels: # Теги для данного пода, необходимы для Deploy объекта
+    env: prod
+    app: main
+    owner: MaksimKoval
+spec:
+  containers:
+    - name : container-apache # Имя контейнера
+      image: tomcat:latest # Image контейнера
+      ports:
+        - containerPort: 80 # Какой порт открываем контейнеру
