@@ -16,6 +16,7 @@ max-deploy   1/1     1            1           64s
 <details>
   <summary>А где же поды?</summary>
 
+------
   Deployment автоматически сам создал необходимое ему количество подов, мы можем это проверить:
 
   ```console
@@ -23,6 +24,7 @@ max-deploy   1/1     1            1           64s
   NAME                          READY   STATUS    RESTARTS   AGE
   max-deploy-8684b6d5b7-tt2kb   1/1     Running   0          3m17s
   ```
+------
 </details>
 
 Попробуем получить информацию о Deploy:
@@ -56,6 +58,7 @@ max-deploy-8684b6d5b7   3         3         3       14m
 <details>
   <summary>Проверим количество подов</summary>
 
+------
   ```console
   user@user-PC:~$ kubectl get pods
   NAME                          READY   STATUS    RESTARTS   AGE
@@ -63,11 +66,13 @@ max-deploy-8684b6d5b7   3         3         3       14m
   max-deploy-8684b6d5b7-k4n2f   1/1     Running   0          47s
   max-deploy-8684b6d5b7-tt2kb   1/1     Running   0          9m10s
   ```
+------
 </details>
 
 <details>
   <summary>А что если убить один из подов?</summary>
 
+------
   Попробуем убить один из подов и посмотреть, что будет. Посмотрим на все наши поды:
 
   ```console
@@ -94,4 +99,5 @@ max-deploy-8684b6d5b7   3         3         3       14m
   ```
 
   Как мы видим, тут же стартует еще один. Все для того, чтобы подов всегда было указанное количество.
+------
 </details>
