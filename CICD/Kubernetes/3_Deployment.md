@@ -102,3 +102,51 @@ max-deploy-8684b6d5b7   3         3         3       14m
 
 ------
 </details>
+
+## Horizontal Pod Autoscaling (HPA)
+Для деплоя можно настроить autoscale. Этот объект смотрит, какое количество ресурсов потребляет контейнер в Pod. 
+Если используемый ресурс перешел пограничную отметку, создаются новые Pods, если можно сократить количество Pods, 
+они сокращаются.
+ 
+```console
+user@user-PC:~$ kubectl autoscale deploy max-deploy --min=4 --max=6 --cpu-percent=80
+horizontalpodautoscaler.autoscaling/max-deploy autoscaled
+```
+
+Посмотреть созданые HPA можно при помощи команды:
+
+```console 
+user@user-PC:~$ kubectl get hpa
+NAME         REFERENCE               TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+max-deploy   Deployment/max-deploy   <unknown>/80%   4         6         4          65s
+```
+
+## Deployment image update
+Допустим наш сервис какое-то время крутится в кубере, появилась новая версия этого сервиса и нам нужно обновить
+версию контейнера. Kubernetes позволяет для этих целей не пересоздавать целый deployment, а только обновить версию
+контейнера. Для начала нам нужно узнать название контейнера в deploy. Вызываем `describe` и ищем следующую строчку:
+
+```console
+user@user-PC:~$ kubectl describe deploy max-deploy
+...
+Pod Template:
+  Labels:  app=max-deploy
+  Containers:
+   tomcat: # <-- нас интересует эта строчка, это название контейнера
+...
+```
+
+Теперь зная название контейнера, изменим версию image для него:
+```console
+user@user-PC:~$ kubectl set image deploy/max-deploy tomcat=tomcat:8.5.84-jre11
+deployment.apps/max-deploy image updated
+```
+
+Все, версия image обновилась. Попробуем посмотреть историю версий:
+```console
+user@user-PC:~$ kubectl rollout history deploy/max-deploy
+deployment.apps/max-deploy 
+REVISION  CHANGE-CAUSE
+1         <none>
+2         kubectl set image deploy/max-deploy tomcat=tomcat:8.5.84-jre11
+```
