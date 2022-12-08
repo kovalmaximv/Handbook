@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: max-deploy-with-autoscaling # Имя пода
+  labels: # лейблы понадобятся в дальнейшем
+    app: my-k8s-application
+    env: prod
+    owner: MaxKoval
+spec:
+  replicas: 2 # Количество реплик Pods
+  selector: # С какими Pod будет работать deploy
+    matchLabels: # С Pod, которые имеют labels
+      project: lesson # project: lesson
+  template: # Начинаем создавать Pod
+    metadata:
+      labels: # Прикручиваем ко всем Pod лейбл, указанный ниже
+        project: lesson # этот лейбл должен совпадать с matchLabels выше
+    spec:
+      containers: # объявляем используемый контейнер
+        - name: max-container
+          image: adv4000/k8sphp:version1
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 80
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: my-autoscaling # Имя для HPA
+spec:
+  scaleTargetRef: # Что будем автоскейлить
+    apiVersion: apps/v1
+    kind: Deployment
+    name: my-web-deployment-autoscaling # имя deploy для autoscale
+  minReplicas: 1 # минимальное количество реплик
+  maxReplicas: 3 # максимальное количество реплик
+  metrics: # На основании чего будем скейлить
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization # Использование ЦПУ
+          averageUtilization: 50 # среднее использование превышает 50% на всех подах

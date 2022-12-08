@@ -1,4 +1,15 @@
 # Deployment
+Deployment (или deploy) позволяет обновлять Pods.
+
+В Deploy вы описываете желаемое состояние Pods и Deploy изменит актуальное состояние Pod на желаемое. Если 
+необходимо, Pods будут созданы.
+
+Что умеет Deployment:
+1) Деплоить Pods на рабочие ноды.
+2) Обновлять версию image для подов.
+3) Делать rollback на предыдущие версию image для подов.
+4) Производить масштабирование (для этого создается объект Horizontal Pod Autoscaling)
+
 ## Ручная работа в терминале
 Чтобы создать Deployment необходимо использовать:
 ```console
@@ -149,4 +160,29 @@ deployment.apps/max-deploy
 REVISION  CHANGE-CAUSE
 1         <none>
 2         kubectl set image deploy/max-deploy tomcat=tomcat:8.5.84-jre11
+```
+
+Откатиться на предыдущую версию можно следующей командой:
+```console
+user@user-PC:~$ kubectl rollout undo deploy/max-deploy
+deployment.apps/max-deploy rolled back
+```
+
+Зачастую для прода у нас стоит версия image с названием latest или stable. Допустим мы выпустили новую latest 
+версию для продакшена и хотим, чтобы деплой заново скачал новую latest версию image. Делается это так:
+```console
+user@user-PC:~$ kubectl rollout restart deploy/max-deploy
+deployment.apps/max-deploy restarted
+```
+
+## Использование манифестов
+Естественно, вручную деплои никто не создает, для этого тоже есть манифесты, по аналогии с подами.
+
+Пример манифеста можно посмотреть [здесь](./manifests/deploy_manifest.yml)
+
+Запустить манифест можно командой:
+```console
+user@user-PC:~$ kubectl apply -f deploy-3-autoscaling.yaml 
+deployment.apps/my-web-deployment-autoscaling created
+horizontalpodautoscaler.autoscaling/my-autoscaling created
 ```
