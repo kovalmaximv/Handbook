@@ -1,0 +1,43 @@
+# Сначала создадим deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-web-deploy
+  labels:
+    app: my-k8s-deploy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      project: lesson
+  template:
+    metadata:
+      labels:
+        project: lesson # В дальнейшем мы настроим, чтобы Service искал Pod с таким label
+    spec:
+      containers:
+        - name: max-container
+          image: tomcat:latest
+          ports:
+            - containerPort: 8080
+
+---
+# Теперь создадим Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-single-pod-service
+  labels:
+    env: prod
+    owner: MaxKoval
+selector:
+  project: lesson # На поды с каким label будет работать
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 80 # порт service
+      targetPort: 8080 # порт нашего контейнера в поде
+      nodePort: 30036 # порт на ноде, куда будет стучаться весь трафик
+      # По каким портам пойдет запрос: nodePort -> port -> targetPort
+      protocol: TCP

@@ -18,13 +18,9 @@ spec:
     spec:
       containers: # объявляем используемый контейнер
         - name: max-container
-          image: adv4000/k8sphp:version1
-          resources:
-            limits:
-              memory: "128Mi"
-              cpu: "500m"
+          image: tomcat:latest
           ports:
-            - containerPort: 80
+            - containerPort: 8080
 
 ---
 apiVersion: autoscaling/v2
