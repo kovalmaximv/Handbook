@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-wildcard-host
+
+spec:
+  rules:
+    - host: "foo.bar.com" # Правило для хоста foo.bar.com
+      http:
+        paths:
+          - pathType: Prefix # pathType настраивает политику regex обработки URI
+            path: "/bar" # Если путь начинается с /bar
+            backend:
+              service:
+                name: service1 # На какой сервис отправлять, если это правило подходит
+                port:
+                  number: 80 # На какой порт отправлять, если это правило подходит
+    - host: "*.foo.com"
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/foo"
+            backend:
+              service:
+                name: service2
+                port:
+                  number: 80

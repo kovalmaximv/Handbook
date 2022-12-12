@@ -182,7 +182,7 @@ deployment.apps/max-deploy restarted
 
 Запустить манифест можно командой:
 ```console
-user@user-PC:~$ kubectl apply -f deploy-3-autoscaling.yaml 
+user@user-PC:~$ kubectl apply -f ./deploy-3-autoscaling.yaml 
 deployment.apps/my-web-deployment-autoscaling created
 horizontalpodautoscaler.autoscaling/my-autoscaling created
 ```

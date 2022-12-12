@@ -57,7 +57,7 @@ service "max-deploy" deleted
 
 Запустить манифест можно командой:
 ```console
-user@user-PC:~$ kubectl apply -f service-manifest.yaml 
+user@user-PC:~$ kubectl apply -f ./service-manifest.yaml 
 deployment.apps/my-web-deploy created
 service/my-single-pod-service created
 ```

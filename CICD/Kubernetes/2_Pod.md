@@ -92,6 +92,6 @@ pod/first-pod created
 
 Чтобы удалить Pod созданный манифестом:
 ```console
-user@user-PC:~$ kubectl delete -f pod_manifest.yml
+user@user-PC:~$ kubectl delete -f ./pod_manifest.yml
 pod "first-pod" deleted
 ```
