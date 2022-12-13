@@ -1,0 +1,20 @@
+# Параметры объявляются в {{ .. }}
+# .Release параметр берет metadata о релизе, которая указывается нами при релизе.
+# .Values параметр из yml файла с параметрами
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-service
+  labels:
+    env  : prod
+    owner: MaksimKoval
+spec:
+  selector:
+    project: {{ .Release.Name }}
+  ports:
+    - name      : {{ .Release.Name }}-listener
+      protocol  : TCP
+      port      : 80
+      targetPort: 80
+  type: LoadBalancer

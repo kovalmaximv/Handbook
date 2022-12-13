@@ -1,0 +1,17 @@
+apiVersion: v2
+name       : App-HelmChart
+description: My Helm chart for Kubernetes
+type       : application
+version    : 0.1.0   # Версия Helm Chart
+appVersion : "1.2.3" # Версия нашего приложения
+
+keywords:
+  - apache
+  - http
+  - https
+  - maksimkoval
+
+maintainers:
+  - name : Maksim Koval
+    email: maksim@koval.net
+    url  : www.maksim.net

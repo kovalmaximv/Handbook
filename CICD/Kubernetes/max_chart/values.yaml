@@ -1,0 +1,4 @@
+container:
+  image: tomcat:latest
+
+replicaCount: 2
