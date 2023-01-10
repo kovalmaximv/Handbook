@@ -2,14 +2,14 @@
 Небольшой репозиторий знаний.
 
 ## Java
-[🧵 Multithread](./Java/Multithread)  
-[🌐 WebService](./Java/WebService)
+[🧵 Multithread](./src/Java/Multithread)  
+[🌐 WebService](./src/Java/WebService)
 
 ## CICD
-[🐜 Kubernetes](./CICD/Kubernetes)
+[🐜 Kubernetes](./src/CICD/Kubernetes)
 
 ## Общеобразовательное
-[🌐 Компьютерные сети](./Computer_network)
+[🌐 Компьютерные сети](./src/Computer_network)
 
 ## Софт скиллы
 [📝 Джедайские техники](./src/Soft/jedis_techniques)
