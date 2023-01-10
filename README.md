@@ -9,7 +9,7 @@
 [🐜 Kubernetes](./src/CICD/Kubernetes)
 
 ## Общеобразовательное
-[🌐 Компьютерные сети](./src/Common/Computer_network)
+[🌐 Компьютерные сети](./src/Common/Computer_network)  
 [🧼 SOAP](./src/Common/SOAP)
 
 ## Софт скиллы
