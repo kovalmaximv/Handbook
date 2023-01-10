@@ -7,7 +7,7 @@ HTTP соединения бывают:
 2) Persistence (default since http 1.1) - в рамках одного TCP коннекта 
 может быть произведено много HTTP запросов.
 
-![http_connection_type.png](../../img/computer_network/http_connection_type.png)
+![http_connection_type.png](../../../img/computer_network/http_connection_type.png)
 
 Формат HTTP запроса и ответа
 

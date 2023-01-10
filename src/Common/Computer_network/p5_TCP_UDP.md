@@ -7,7 +7,7 @@
 
 ## Мультиплексирование и демультеплексирование
 Это операции взаимодействия между портом и сетевым интерфейсом:
-![multiplexing.png](../../img/computer_network/multiplexing.png) 
+![multiplexing.png](../../../img/computer_network/multiplexing.png) 
 
 ## Сокет
 Сокет (Socket API) - интерфейс, позволяющий обмениваться информацией между двумя приложениями по сети.
@@ -18,12 +18,12 @@
 В противовес этому, протокол очень быстрый, так как ничего не проверяет и не мониторит. 
 Отстрелил сообщение и забыл.
 
-![udp_scheme.png](../../img/computer_network/udp_scheme.png)
+![udp_scheme.png](../../../img/computer_network/udp_scheme.png)
 
 ## Протокол TCP
 В противовес UDP, TCP протокол устанавливает логическое соединение.
 
-![tcp_scheme.png](../../img/computer_network/tcp_scheme.png)
+![tcp_scheme.png](../../../img/computer_network/tcp_scheme.png)
 
 Логическое соединение подразумевает выделение ресурсов для передачи данных и синхронизацию TCP модулей.
 

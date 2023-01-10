@@ -33,7 +33,7 @@
 Для всех популярных технологий (Ethernet, ATM, x.25) есть такой интерфейс, а для новых технологий разработчики
 должны озадачиться его появлением.
 
-![tcp_ip_technology_stack.png](../../img/computer_network/tcp_ip_technology_stack.png)
+![tcp_ip_technology_stack.png](../../../img/computer_network/tcp_ip_technology_stack.png)
 
 ## Типы адресов TCP/IP
 В каждой подсети может использоваться своя система адресация в зависимости от технологии.
@@ -45,9 +45,9 @@
 
 ## Формат IP адресов
 IP адрес имеет вид  
-![tcp_ip_technology_stack.png](../../img/computer_network/ip_sample.png)  
+![tcp_ip_technology_stack.png](../../../img/computer_network/ip_sample.png)  
 Так же он состоит из адреса сети и адреса узла  
-![tcp_ip_technology_stack.png](../../img/computer_network/ip_structure_sample.png)  
+![tcp_ip_technology_stack.png](../../../img/computer_network/ip_structure_sample.png)  
 Разделение это может происходить двумя разными способами
 
 ### RFC 950
@@ -62,7 +62,7 @@ IP адрес имеет вид
 ## Классы IP адресов
 Класс IP адреса (согласно RFC 791) определяется первыми байтами. 
 Классы представлены на картинке
-![ip_classes.png](../../img/computer_network/ip_classes.png)  
+![ip_classes.png](../../../img/computer_network/ip_classes.png)  
 
 Классы A, B, C - обычные индивидуальные адреса.  
 Помимо этих классов, есть классы D, E - которые являются групповыми адресами и 
