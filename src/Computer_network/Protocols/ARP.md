@@ -10,7 +10,7 @@ ARP протокол хранит таблицу соответствий IP - M
 4) Отправитель, получим MAC адрес записывает его в свою ARP таблицу и хранит ее там пару минут.
 ## Пример 
 Допустим есть небольшая сеть:
-![ip_classes.png](../../img/computer_network/protocols/ARP_example.png)  
+![ip_classes.png](../../../img/computer_network/protocols/ARP_example.png)  
 И узел C хочет отправить запрос узлу А.
 
 Ход действий:

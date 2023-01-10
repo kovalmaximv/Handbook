@@ -2,12 +2,12 @@
 Ingress - объект k8s, предоставляющий внешний доступ к сервисам.
 
 Представим, что у нас есть два деплоя с сервисом типа LoadBalancer:
-![ingress_load_balancer_problem.png](../../img/k8s/ingress_load_balancer_problem.png)
+![ingress_load_balancer_problem.png](../../../img/k8s/ingress_load_balancer_problem.png)
 Такая схема будет работать, но в ней есть нюанс: каждый LoadBalancer стоит денег. И чем больше будет 
 разрастаться наша система, тем больше нужно LoadBalancer'ов и тем больше все это будет стоить.
 
 Благо, k8s предлагает решение этой проблемы, **ingress controller**:
-![ingress_solution.png](../../img/k8s/ingress_solution.png)
+![ingress_solution.png](../../../img/k8s/ingress_solution.png)
 Все предыдущие сервисы типа LoadBalancer внутри кластера заменяются на сервисы типа ClusterIP. Такой сервис ничего 
 не стоит. Далее ставится и настраивается ingress controller, который в зависимости от правил (например по URI) 
 будет определять, в какой сервис отправлять запрос. Чтобы до ingress контроллера можно было достучаться извне,

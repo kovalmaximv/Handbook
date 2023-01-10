@@ -44,7 +44,7 @@
 Для задач, которые включают блокирующие операции (например ввод-вывод) требуется бОльший пул. Оптимальный размер пула 
 в таком случае определяется по формуле:
 
-![thread_pool_size_formula](../../img/multithread/thread_pool_size_formula.jpg)
+![thread_pool_size_formula](../../../../img/multithread/thread_pool_size_formula.jpg)
 
 где  
 **Ncpu** - число процессоров  

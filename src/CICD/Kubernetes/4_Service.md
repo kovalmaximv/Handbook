@@ -11,13 +11,13 @@ Service - объект k8s который позволяет открыть се
 
 Существует 4 типа Service:
 1) **ClusterIP** - задает IP сервису только внутри кластера. Используется по умолчанию.  
-![k8s_service_ClusterIP.png](../../img/k8s/k8s_service_ClusterIP.png)
+![k8s_service_ClusterIP.png](../../../img/k8s/k8s_service_ClusterIP.png)
 2) **NodePort** - открывает порт на всех нодах, где крутятся поды сервиса. 
 На этом порту становится доступен сервис. Пользователь стучится в ноду, из ноды попадает в сервис, из сервиса в под.  
-![k8s_service_NodePort.png](../../img/k8s/k8s_service_NodePort.png)
+![k8s_service_NodePort.png](../../../img/k8s/k8s_service_NodePort.png)
 3) **LoadBalancer** - Создается балансировщик (вне кластера), который ведет к сервису в кластере. Доступно 
 для Cloud Clusters (AWS, Google, Azure, etc).  
-![k8s_service_LoadBalancer.png](../../img/k8s/k8s_service_LoadBalancer.png)
+![k8s_service_LoadBalancer.png](../../../img/k8s/k8s_service_LoadBalancer.png)
 4) **ExternalName** - Сервис, который на уровне DNS будет редиректить (например на другой сервис) запрос извне.  
 
 ## Ручная работа в терминале

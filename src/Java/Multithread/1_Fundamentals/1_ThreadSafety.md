@@ -59,7 +59,7 @@ public class NumFactor {
 Если два потока попробуют одновременно увеличить такой счетчик, то оба потока достанут значение 0, 
 добавят к нему 1, и положат значение 1 обратно. Таким образом мы потеряем один вызов в счетчике.
 
-![counter_example.png](../../img/multithread/counter_example.png)
+![counter_example.png](../../../../img/multithread/counter_example.png)
 
 Данная проблема называется состоянием гонки (_race condition_).
 
