@@ -3,7 +3,8 @@
 
 ## Java
 [🧵 Multithread](./src/Java/Multithread)  
-[🌐 WebService](./src/Java/WebService)
+[🌐 WebService](./src/Java/WebService)  
+[🙈 RxJava (Work in progress)](./src/Java/RXJava)
 
 ## CICD
 [🐜 Kubernetes](./src/CICD/Kubernetes)
