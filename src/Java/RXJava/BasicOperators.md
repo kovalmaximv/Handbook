@@ -18,7 +18,12 @@
    - [cast](#cast)
    - [startWithItem](#startwithitem)
    - [sorted](#sorted)
-4. 
+   - [scan](#scan)
+4. [Сокращающие операторы](#Сокращающие-операнды)
+   - [count](#count)
+   - [reduce](#reduce)
+5. [Логические операнды](#Логические-операнды)
+   - [all](#all)
 
 ## Условные операнды
 Условные операнды позволяют пропускать или модифицировать Observable по условию.
@@ -228,3 +233,46 @@ Observable.just(6, 2, 5, 7, 1, 4, 9, 8, 3)
           .subscribe(System.out::print); // 123456789
 ```
 
+#### scan
+`scan()` применяет переданную функцию к полученному объекту, затем сохраняет полученный результат, как один из 
+параметров для этой функции.
+
+```java
+Observable.just(5, 3, 7)
+        .scan((accumulator, i) -> accumulator + i)
+        .subscribe(s -> System.out.println("Received: " + s));
+
+/*
+   Received: 5
+   Received: 8
+   Received: 15
+ */
+```
+
+## Сокращающие операнды
+Сокращающие операторы преобразуют несколько элементов в один. В некоторых случаях весь Observable приводится в Single.
+
+#### count
+`count()` возвращает количество элементов в реактивной цепочке. Нельзя использовать в цепочках с бесконечным 
+количеством элементов, вместо этого стоит использовать scan.
+
+```java
+Observable.just("Alpha", "Beta", "Gamma")
+      .count()
+      .subscribe(s -> System.out.println("Received: " + s)); // Received: 3
+```
+
+#### reduce
+`reduce()` идентичен в работе с scan, но возвращает только одно итоговое значение.
+
+```java
+Observable.just(5, 3, 7)
+        .reduce((total, i) -> total + i)
+        .subscribe(s -> System.out.println("Received: " + s)); // Received: 15
+```
+
+## Логические операнды
+По сути это подтип сокращающих операндов, только логические операнды возвращают boolean значение исходя из переданной 
+функции.
+
+#### all
