@@ -24,6 +24,24 @@
    - [reduce](#reduce)
 5. [Логические операнды](#Логические-операнды)
    - [all](#all)
+   - [any](#any)
+   - [isEmpty](#isempty)
+   - [contains](#contains)
+   - [sequenceEqual](#sequenceequal)
+6. [Собирающие операнды](#Собирающие-операнды)
+   - [toList](#tolist)
+   - [toSortedList](#tosortedlist)
+   - [toMap](#tomap)
+   - [collect](#collect)
+7. [Операнды восстановления ошибок](#Операнды-восстановления-ошибок)
+   - [onErrorReturnItem](#onerrorreturnitem)
+   - [onErrorResumeWith](#onerrorresumewith)
+   - [retry](#retry)
+8. [Операторы действия](#Операторы-действия)
+   - [doOnNext, doOnComplete, doOnError](#doonnext-dooncomplete-doonerror)
+   - [doOnEach](#dooneach)
+   - [doOnSubscribe, doOnDispose](#doonsubscribe-doondispose)
+   - [doFinally](#dofinally)
 
 ## Условные операнды
 Условные операнды позволяют пропускать или модифицировать Observable по условию.
@@ -276,3 +294,247 @@ Observable.just(5, 3, 7)
 функции.
 
 #### all
+`all()` проверяет, что все элементы удовлетворяют заданному условию и возвращает `Single<Boolean>`. На пустом Observable
+вернет true.
+
+```java
+Observable.just(5, 3, 7, 11, 2, 14)
+         .all(i -> i < 10)
+         .subscribe(s -> System.out.println("Received: " + s)); // Received: false
+```
+
+#### any
+`any()` проверяет, что хотя бы один элемент из цепочки удовлетворяет заданному условию. Как только будет найден такой 
+элемент, `any()` вернет Single<Boolean>. 
+
+```java
+Observable.just(5, 3, 7, 11, 2, 14)
+         .any(i -> i > 10)
+         .subscribe(s -> System.out.println("Received: " + s)); // Received: true
+```
+
+#### isEmpty
+`isEmpty()` проверяет, будет ли Observable рассылать объекты. Возвращает true, если нет.
+
+```java
+Observable.just("One", "Two", "Three")
+         .filter(s -> s.contains("z"))
+         .isEmpty()
+         .subscribe(s -> System.out.println("Received1: " + s)); // Received: true
+```
+
+#### contains
+`contains()` проверяет, есть ли в цепочке определенный объект. Поиск происходит с помощью equals и hashcode.
+
+```java
+Observable.range(1, 10000)
+         .contains(9563)
+         .subscribe(s -> System.out.println("Received: " + s)); // Received: true
+```
+
+#### sequenceEqual
+`sequenceEqual()` сравнивает несколько Observable и возвращает true, если они рассылают одинаковые объекты в одинаковой
+последовательности. Проверка происходит с помощью equals и hashcode.
+
+```java
+Observable<String> obs1 = Observable.just("One","Two","Three");
+Observable<String> obs2 = Observable.just("One","Two","Three");
+Observable<String> obs3 = Observable.just("Two","One","Three");
+Observable<String> obs4 = Observable.just("One","Two");
+
+Observable.sequenceEqual(obs1, obs2)
+        .subscribe(s -> System.out.println("Received: " + s)); // Received: true
+
+Observable.sequenceEqual(obs1, obs3)
+        .subscribe(s -> System.out.println("Received: " + s)); // Received: false
+
+Observable.sequenceEqual(obs1, obs4)
+        .subscribe(s -> System.out.println("Received: " + s)); // Received: false
+```
+
+## Собирающие операнды
+Собирающие операнды предназначены для сбора Observable в коллекцию. Думаю, некоторые операнды не нуждаются в объяснении.
+
+#### toList
+
+#### toSortedList
+
+#### toMap
+
+#### collect
+`collect()` - базовый операнд, на основе которого можно написать сбор в любую коллекцию. Для этого понадобятся следующие 
+параметры `collect(Callable<U> initialValueSupplier, BiConsumer<U,T> collector)`. Например, не существует операнда toSet, 
+можно написать свой, используя collect.
+
+```java
+Observable.just("Alpha", "Beta", "Gamma", "Beta")
+         .collect(HashSet<String>::new, HashSet::add)
+         .subscribe(s -> System.out.println("Received: " + s));
+```
+
+## Операнды восстановления ошибок
+В некоторых случаях мы хотим перехватить ошибки до того, как они дойдут до onError метода. Для таких случаев существуют
+операнды восстановления ошибок.
+
+#### onErrorReturnItem
+`onErrorReturnItem()` перехватывает ошибку и вместо нее рассылает далее по цепочке переданный объект. Возникновение 
+ошибки все равно останавливает рассылку объектов от Observable-источника.
+
+```java
+Observable.just(5, 2, 4, 0, 3)
+         .map(i -> 10 / i)
+         .onErrorReturnItem(-1)
+         .subscribe(i -> System.out.println("RECEIVED: " + i),
+         e -> System.out.println("RECEIVED ERROR: " + e));
+
+/*
+   RECEIVED: 2
+   RECEIVED: 5
+   RECEIVED: 2
+   RECEIVED: -1
+ */
+```
+
+Так же есть метод `onErrorReturn(Function<Throwable,T> valueSupplier)`. Переданная функция может в зависимости от ошибки
+возвращать разные значения. 
+
+```java
+Observable.just(5, 2, 4, 0, 3)
+         .map(i -> 10 / i)
+         .onErrorReturn(e -> e instanceof ArithmeticException ? -1 : 0)
+         .subscribe(i -> System.out.println("RECEIVED: " + i),
+                    e -> System.out.println("RECEIVED ERROR: " + e));
+```
+
+#### onErrorResumeWith
+`onErrorResumeWith` работает схоже с `onErrorReturnItem`, только передает дальше по цепочке новый Observable. Таким 
+образом можно передать не один объект, а несколько.
+
+```java
+Observable.just(5, 2, 4, 0, 3)
+         .map(i -> 10 / i)
+         .onErrorResumeWith(Observable.just(-1).repeat(3))
+         .subscribe(i -> System.out.println("RECEIVED: " + i),
+                    e -> System.out.println("RECEIVED ERROR: " + e));
+
+/*
+   RECEIVED: 2
+   RECEIVED: 5
+   RECEIVED: 2
+   RECEIVED: -1
+   RECEIVED: -1
+   RECEIVED: -1
+ */
+```
+
+#### retry
+`retry` переподписывается на Observable, чтобы повторить попытку выполнения для возможного избежания ошибки. Если не 
+передавать аргумент (количество попыток), то количество попыток будет неограничено.
+
+```java
+Observable.just(5, 2, 4, 0, 3)
+         .map(i -> 10 / i)
+         .retry(2)
+         .subscribe(i -> System.out.println("RECEIVED: " + i),
+                    e -> System.out.println("RECEIVED ERROR: " + e));
+
+/*
+   RECEIVED: 2
+   RECEIVED: 5
+   RECEIVED: 2
+   RECEIVED: 2
+   RECEIVED: 5
+   RECEIVED: 2
+   RECEIVED: 2
+   RECEIVED: 5
+   RECEIVED: 2
+   RECEIVED ERROR: java.lang.ArithmeticException: / by zero
+ */
+```
+
+## Операторы действия
+Операторы действия (Action operators) не модифицируют объекты и нужны для дебаггинга, просмотра содержимого цепочки или
+второстепенных действий.
+
+#### doOnNext, doOnComplete, doOnError
+`doOnNext()` позволяет вызвать функцию с каждым элементом из цепочки перед тем, как пропустить этот элемент дальше. 
+Данный операнд никак не модифицирует пересылаемый объект по цепочке. Он необходим только для вызова второстепенных 
+действий по ходу выполнения этой цепочки. 
+
+```java
+Observable.just("Alpha", "Beta", "Gamma")
+         .doOnNext(s -> System.out.println("Processing: " + s))
+         .map(String::length)
+         .subscribe(i -> System.out.println("Received: " + i));
+
+/*
+   Processing: Alpha
+   Received: 5
+   Processing: Beta
+   Received: 4
+   Processing: Gamma
+   Received: 5
+ */
+```
+
+`doOnComplete()` схож по действию с `doOnNext()`, но вызывается после отправки последнего элемента, перед вызовом 
+onComplete.
+
+```java
+Observable.just("Alpha", "Beta", "Gamma")
+         .doOnComplete(() -> System.out.println("Source is done emitting!"))
+         .map(String::length)
+         .subscribe(i -> System.out.println("Received: " + i));
+
+        
+/*
+   Received: 5
+   Received: 4
+   Received: 5
+   Source is done emitting! 
+ */
+```
+
+По аналогии работает `doOnError`.
+
+#### doOnEach
+`doOnEach` похож на doOnNext, только поступающий объект оборачивается в тип Notification, который хранит тип 
+произошедшего события [onNext, onError, onComplete].
+
+```java
+Observable.just("One", "Two", "Three")
+         .doOnEach(s -> System.out.println("doOnEach: " + s))
+         .subscribe(i -> System.out.println("Received: " + i));
+
+/*
+   doOnEach: OnNextNotification[One]
+   Received: One
+   doOnEach: OnNextNotification[Two]
+   Received: Two
+   doOnEach: OnNextNotification[Three]
+   Received: Three
+   doOnEach: OnCompleteNotification
+ */
+```
+
+#### doOnSubscribe, doOnDispose
+`doOnSubscribe(Consumer<Disposable> onSubscribe)` вызывается в момент, когда на Observable происходит подписка. Внутри
+метода будет доступ к Disposable, так что подпиской можно будет управлять.
+
+В противовес `doOnDispose()` выполняется, когда происходит отписка от Observable.
+
+#### doFinally
+`doFinnaly` вызывается после `onComplete`, `onError` или после вызова `Disposable.dispose()`. Таким образом, можно 
+провести финальные действия с реактивной цепочкой. 
+
+```java
+Observable.just("One", "Two", "Three")
+         .doFinally(() -> System.out.println("doFinally!"))
+         .subscribe(i -> System.out.println("Received: " + i));
+
+/*
+   Received: Two
+   Received: Three
+   doFinally!
+ */
+```
