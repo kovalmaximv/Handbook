@@ -4,9 +4,10 @@
 же бывает необходимо комбинировать Observable. 
 
 #### Объединение Observable
-Для объединения нескольких Observable существует два способа: фабрика `Observable.merge` и операнд `mergeWith`. Данный
-метод может перемешивать значения горячих Observable. В целом лучше не надеяться на очевидный порядок следования 
-элементов при мерже (особенно в многопоточных системах). Для этих целей лучше использовать `Observable.concat`. 
+Для объединения нескольких Observable (observable merging) существует два способа: фабрика `Observable.merge` и 
+операнд `mergeWith`. Данный метод может перемешивать значения горячих Observable. В целом лучше не надеяться на 
+очевидный порядок следования элементов при мерже (особенно в многопоточных системах). Для этих целей лучше использовать 
+`Observable.concat`. 
 
 ```java
 Observable<String> src1 = Observable.just("Alpha", "Beta");
@@ -24,4 +25,67 @@ src1.mergeWith(src2).subscribe(i -> System.out.println("RECEIVED: " + i));
  */
 ```
 
-#### flatMap
+`flatMap()` так же один из инструментов объединения Observable и один из самых сильных инструментов RxJava. Он 
+срабатывает для каждого пересылаемого объекта в цепи и на его основе делает Observable. Все исходящие из flatMap 
+Observable при выходе мержатся в один. Получается что-то похожее `object -> Observable.just(...)`.
+
+```java
+Observable.just("Alpha", "Beta", "Gamma")
+        .flatMap(s -> Observable.fromArray(s.split("")))
+        .subscribe(System.out::println);
+
+/*
+   A
+   l
+   p
+   h
+   a
+   B
+   ...
+ */
+```
+
+#### Соединение Observable
+Соединение Observable (Observable concatenation) сначала рассылает все объекты из первого Observable, затем из второго и
+так далее. Таким образом появляется четкий порядок следования. Соединение следует выбирать вместо слияния, когда 
+необходим четкий порядок рассылки объектов из Observable.
+
+Для этого так же существуют два способа: фабрика `Observable.concat()` и операнд `concatWith`. Если использовать 
+бесконечный Observable, то это приведет к тому, что следующие Observable вызваны не будут. Бесконечный Observable при 
+соединении стоит использовать последним. 
+
+```java
+Observable<String> src1 = Observable.just("Alpha", "Beta");
+Observable<String> src2 = Observable.just("Zeta", "Eta");
+
+Observable.concat(src1, src2).subscribe(i -> System.out.println("RECEIVED: " + i));
+src1.concatWith(src2).subscribe(i -> System.out.println("RECEIVED: " + i));
+
+/*
+   RECEIVED: Alpha
+   RECEIVED: Beta
+   RECEIVED: Zeta
+   RECEIVED: Eta
+ */
+```
+
+`concatMap` очень похож на `flatMap` с той лишь разницей, что он гарантирует порядок появления новых Observable из-за 
+использования механизима соединения вместо слияния.
+
+```java
+Observable.just("Alpha", "Beta", "Gamma")
+        .concatMap(s -> Observable.fromArray(s.split("")))
+        .subscribe(System.out::println);
+
+/*
+   A
+   l
+   p
+   h
+   a
+   B
+   ...
+ */
+```
+
+#### Ambiguous operators
