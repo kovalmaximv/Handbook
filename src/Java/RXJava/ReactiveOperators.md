@@ -88,4 +88,42 @@ Observable.just("Alpha", "Beta", "Gamma")
  */
 ```
 
-#### Ambiguous operators
+#### Неявная фабрика
+Ambiguous (неявная) фабрика `Observable.amb()` принимает на вход коллекцию Observable. Первый Observable, который
+начнет рассылать объекты, станет источником. От всех остальных Observable фабрика отпишется. 
+
+#### Zipping фабрика
+Zipping фабрика позволяет объединять emission двух разных Observable в один. 
+
+```java
+Observable<String> src1 = Observable.just("Alpha", "Beta", "Gamma");
+Observable<Integer> src2 = Observable.range(1, 6);
+Observable.zip(src1, src2, (s, i) -> s + "-" + i).subscribe(System.out::println);
+
+/*
+    Alpha-1
+    Beta-2
+    Gamma-3
+ */
+```
+
+#### groupBy операнд
+`groupBy()` операнд позволяет сгруппировать рассылаемые объекты согласно переданной функции. Возвращает
+`GroupedObservable<K, V>` который напоминает словарь, только из мира Observable. `GroupedObservable` что-то
+среднее между горячим и холодным Observable. Он рассылает все объекты первому Observer, но второй и последующий 
+не получат пропущенные объекты.
+
+```java
+Observable<String> source = Observable.just("Alpha", "Beta", "Gamma", "Delta", "Epsilon");
+Observable<GroupedObservable<Integer, String>> byLengths = source.groupBy(s -> s.length());
+byLengths.flatMapSingle(grp -> grp.toList()).subscribe(System.out::println);
+
+/*
+    [Beta]
+    [Alpha, Gamma, Delta]
+    [Epsilon]
+ */
+```
+
+## Multicasting, Replaying, and Caching
+#### Multicasting
