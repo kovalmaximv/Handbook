@@ -127,3 +127,51 @@ byLengths.flatMapSingle(grp -> grp.toList()).subscribe(System.out::println);
 
 ## Multicasting, Replaying, and Caching
 #### Multicasting
+Взглянем на следующий код:
+
+```java
+Observable<String> source = Observable.just("Alpha", "Beta", "Gamma");
+source.subscribe(i -> System.out.println("Observer One: " + i));
+source.subscribe(i -> System.out.println("Observer Two: " + i));
+
+/*
+    Observer One: 1
+    Observer One: 2
+    Observer One: 3
+    Observer Two: 1
+    Observer Two: 2
+    Observer Two: 3   
+ */
+```
+
+Observable сначала раздал значения в первого подписчика, дождался выполнения onComplete, затем раздал те же
+значения второму подписчику и дождался onComplete. Выполнение кода оказалось линейным. Но что если попробовать 
+сделать этот код параллельным и запихать каждого подписчика в свой поток?
+
+Такого можно добиться при помощи `ConnectableObservable`. Он превратит холодный Observable в горячий и таким образом 
+все данные уедут двум подписчикам одновременно. Это и называют multicasting (многоадресная рассылка).
+
+```java
+ConnectableObservable<String> source = Observable.just("Alpha", "Beta", "Gamma").publish();
+source.subscribe(i -> System.out.println("Observer One: " + i));
+source.subscribe(i -> System.out.println("Observer Two: " + i));
+source.connect();
+
+/*
+    Observer One: 1
+    Observer Two: 1
+    Observer One: 2
+    Observer Two: 2
+    Observer One: 3
+    Observer Two: 3   
+ */
+```
+
+Все операторы, что объявлены в цепи до publish() выполняется один раз для всех подписчиков. В то же время все операторы 
+после publish выполняются в разных потоках для каждого подписчика. В то же время для холодных Observable каждый оператор
+будет выполняться заново для каждого onNext. 
+
+Возможность отправлять одинаковые данные разных подписчикам является **главной фишкой multicasting**. Из-за того, что 
+методы так же вызываются один раз, это может быть использовано для оптимизации. 
+
+#### Replaying
