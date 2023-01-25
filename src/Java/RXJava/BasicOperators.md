@@ -2,49 +2,49 @@
 Для понимания работы RxJava помимо Observable/Observer необходимо знать основные реактивные операнды для построения 
 реактивных цепочек.
 
-1. [Условные операнды](#Условные-операнды)
+1. [Conditional operators](#conditional-operators)
    - [takeWhile/skipWhile](#takewhileskipwhile)
    - [defaultIfEmpty](#defaultifempty)
    - [switchIfEmpty](#switchifempty)
-2. [Фильтрующие операнды](#Фильтрующие-операнды)
+2. [Suppressing operators](#suppressing-operators)
    - [filter](#filter)
    - [take](#take)
    - [skip](#skip)
    - [distinct](#distinct)
    - [distinctUntilChanged](#distinctuntilchanged)
    - [elementAt](#elementat)
-3. [Преобразующие операнды](#Преобразующие-операнды)
+3. [Transforming operators](#transforming-operators)
    - [map](#map)
    - [cast](#cast)
    - [startWithItem](#startwithitem)
    - [sorted](#sorted)
    - [scan](#scan)
-4. [Сокращающие операторы](#Сокращающие-операнды)
+4. [Reducing operators](#reducing-operators)
    - [count](#count)
    - [reduce](#reduce)
-5. [Логические операнды](#Логические-операнды)
+5. [Boolean operators](#boolean-operators)
    - [all](#all)
    - [any](#any)
    - [isEmpty](#isempty)
    - [contains](#contains)
    - [sequenceEqual](#sequenceequal)
-6. [Собирающие операнды](#Собирающие-операнды)
+6. [Collection operators](#collection-operators)
    - [toList](#tolist)
    - [toSortedList](#tosortedlist)
    - [toMap](#tomap)
    - [collect](#collect)
-7. [Операнды восстановления ошибок](#Операнды-восстановления-ошибок)
+7. [Error recovery operators](#error-recovery-operators)
    - [onErrorReturnItem](#onerrorreturnitem)
    - [onErrorResumeWith](#onerrorresumewith)
    - [retry](#retry)
-8. [Операторы действия](#Операторы-действия)
+8. [Action operators](#action-operators)
    - [doOnNext, doOnComplete, doOnError](#doonnext-dooncomplete-doonerror)
    - [doOnEach](#dooneach)
    - [doOnSubscribe, doOnDispose](#doonsubscribe-doondispose)
    - [doFinally](#dofinally)
 
-## Условные операнды
-Условные операнды позволяют пропускать или модифицировать Observable по условию.
+## Conditional operators
+Условные операнды (Conditional operators) позволяют пропускать или модифицировать Observable по условию.
 #### takeWhile/skipWhile
 `takeWhile()` пропускает объекты до тех пор, пока выполняется переданное условие. Как только появлятеся объект, для 
 которого условие не выполняется, вызывает `onComplete`
@@ -102,7 +102,7 @@ Observable.just("Alpha", "Beta", "Gamma")
  */
 ```
 
-## Фильтрующие операнды
+## Suppressing operators
 Операнды, которые исключают из цепочки объекты, не подходящие под указанный критерий.
 
 #### filter
@@ -196,8 +196,8 @@ Observable.just("Alpha", "Beta", "Zeta", "Eta", "Gamma")
  */
 ```
 
-## Преобразующие операнды
-Преобразуюзие операнды необходимы для изменения объекта в реактивной цепочке.
+## Transforming operators
+Преобразующие операнды (Transforming operators) необходимы для изменения объекта в реактивной цепочке.
 
 #### map
 `map()` преобразовывает объект в цепочке. В том числе может изменить тип объекта. Преобразует один элемент в один 
@@ -267,8 +267,8 @@ Observable.just(5, 3, 7)
  */
 ```
 
-## Сокращающие операнды
-Сокращающие операторы преобразуют несколько элементов в один. В некоторых случаях весь Observable приводится в Single.
+## Reducing operators
+Сокращающие операторы (Reducing operators) преобразуют несколько элементов в один. В некоторых случаях весь Observable приводится в Single.
 
 #### count
 `count()` возвращает количество элементов в реактивной цепочке. Нельзя использовать в цепочках с бесконечным 
@@ -289,7 +289,7 @@ Observable.just(5, 3, 7)
         .subscribe(s -> System.out.println("Received: " + s)); // Received: 15
 ```
 
-## Логические операнды
+## Boolean operators
 По сути это подтип сокращающих операндов, только логические операнды возвращают boolean значение исходя из переданной 
 функции.
 
@@ -352,8 +352,8 @@ Observable.sequenceEqual(obs1, obs4)
         .subscribe(s -> System.out.println("Received: " + s)); // Received: false
 ```
 
-## Собирающие операнды
-Собирающие операнды предназначены для сбора Observable в коллекцию. Думаю, некоторые операнды не нуждаются в объяснении.
+## Collection operators
+Собирающие операнды (Collection operators) предназначены для сбора Observable в коллекцию. Думаю, некоторые операнды не нуждаются в объяснении.
 
 #### toList
 
@@ -372,7 +372,7 @@ Observable.just("Alpha", "Beta", "Gamma", "Beta")
          .subscribe(s -> System.out.println("Received: " + s));
 ```
 
-## Операнды восстановления ошибок
+## Error recovery operators
 В некоторых случаях мы хотим перехватить ошибки до того, как они дойдут до onError метода. Для таких случаев существуют
 операнды восстановления ошибок.
 
@@ -452,7 +452,7 @@ Observable.just(5, 2, 4, 0, 3)
  */
 ```
 
-## Операторы действия
+## Action operators
 Операторы действия (Action operators) не модифицируют объекты и нужны для дебаггинга, просмотра содержимого цепочки или
 второстепенных действий.
 

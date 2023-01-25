@@ -1,9 +1,23 @@
 # Реактивные операнды
+
+1. [Комбинируем Observable](#Комбинируем-Observable)
+   - [Observable merging](#Observable-merging)
+   - [Observable concatenation](#Observable-concatenation)
+   - [Ambiguous фабрика](#Ambiguous-фабрика)
+   - [Zipping фабрика](#Zipping-фабрика)
+   - [groupBy операнд](#groupby-)
+2. [Multicasting, Replaying, and Caching](#multicasting-replaying-and-caching)
+   - [Multicasting](#multicasting)
+   - [Caching](#caching)
+   - [Replaying](#replaying)
+   - [Subject](#subject)
+
+
 ## Комбинируем Observable
 Операнды расмотренные в предыдущей главе полезны, поскольку позволяют управлять выбросами (emission). Но зачастую так 
 же бывает необходимо комбинировать Observable. 
 
-#### Объединение Observable
+#### Observable merging
 Для объединения нескольких Observable (observable merging) существует два способа: фабрика `Observable.merge` и 
 операнд `mergeWith`. Данный метод может перемешивать значения горячих Observable. В целом лучше не надеяться на 
 очевидный порядок следования элементов при мерже (особенно в многопоточных системах). Для этих целей лучше использовать 
@@ -45,7 +59,7 @@ Observable.just("Alpha", "Beta", "Gamma")
  */
 ```
 
-#### Соединение Observable
+#### Observable concatenation
 Соединение Observable (Observable concatenation) сначала рассылает все объекты из первого Observable, затем из второго и
 так далее. Таким образом появляется четкий порядок следования. Соединение следует выбирать вместо слияния, когда 
 необходим четкий порядок рассылки объектов из Observable.
@@ -88,7 +102,7 @@ Observable.just("Alpha", "Beta", "Gamma")
  */
 ```
 
-#### Неявная фабрика
+#### Ambiguous фабрика
 Ambiguous (неявная) фабрика `Observable.amb()` принимает на вход коллекцию Observable. Первый Observable, который
 начнет рассылать объекты, станет источником. От всех остальных Observable фабрика отпишется. 
 
@@ -221,3 +235,48 @@ sleep(3000);
 `replay(int num)` - сохраняет только последние num рассылаемых объектов.  
 `replay(int count, TimeUnit type)` - сохраняет только те объекты, которые были разосланы за последние count 
 секунд/минут/etc. Тип времени выбирает по TimeUnit.
+
+#### Subject
+Subject - прокси объект, который необходим для связи между observable и observer. Наподобие event bus, он принимает 
+значения от observable и передает их observer. Используют его в основном в тех случаях, когда у нас есть множество
+observable, значения из которых необходимо объединить. Да, правильно для такого использовать `merge()`, но не всегда
+это возможно, особенно когда observable используются из кода, доступа к которому вы не имеете (например библиотеки). Но 
+лучше избегать возможности использования Subject, поскольку это считается антипаттерном в реактивном программировании.
+
+```java
+Observable<String> source1 = Observable.interval(1, TimeUnit.SECONDS)
+        .map(l -> (l + 1) + " seconds");
+Observable<String> source2 = Observable.interval(300, TimeUnit.MILLISECONDS)
+        .map(l -> ((l + 1) * 300) + " milliseconds");
+
+Subject<String> subject = PublishSubject.create();
+subject.subscribe(System.out::println);
+
+source1.subscribe(subject);
+source2.subscribe(subject);
+sleep(3000);
+
+/*
+    300 milliseconds
+    600 milliseconds
+    900 milliseconds
+    1 seconds
+    1200 milliseconds
+    1500 milliseconds
+    1800 milliseconds
+    2 seconds
+    2100 milliseconds
+    2400 milliseconds
+    2700 milliseconds
+    3 seconds
+    3000 milliseconds
+ */
+```
+
+Цена такой гибкости использования Subject - сложность в контроле. Допустим у вас есть observable которые рассылают 
+котиков, на этот observable подписан subject и рассылает сообщения observer. Если ваш subject утечет вовне (допустим
+в клиентский код) и кто-то решит подписать ваш subject на observable, рассылающих собачек, то он сможет это сделать и 
+сломает ваших observer, которые ждут исключительно котиков.
+
+Еще одна проблема subject - он не потокобезопасен по умолчанию. Чтобы сделать его потокобезопасным, необходимо сделать
+его сериализованным. Для этого есть метод `.toSerialized()`.
