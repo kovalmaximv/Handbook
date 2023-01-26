@@ -20,6 +20,7 @@
      - [ExecutorService](#executorservice)
    - [Parallelization](#parallelization)
 4. [Switching, Throttling, Windowing, and Buffering](#switching-throttling-windowing-and-buffering)
+   - [Buffering](#buffering)
 
 
 ## Комбинируем Observable
@@ -388,3 +389,30 @@ Observable.range(1, 10)
 ```
 
 ## Switching, Throttling, Windowing, and Buffering
+В некоторых ситуация observable генерирует больше данных, чем успевает поглотить observer. Такие ситуации помогут 
+решить Switching, Throttling, Windowing, и Buffering
+
+#### Buffering
+Идея `buffering()` в том, чтобы объединить рассылаемые объекты в список и обработать этот список целиком позже. Возможно
+весь список обработается быстрее, чем каждый элемент по отдельности. Есть несколько перегруженных методов:
+
+`buffering(int count)` - копит count элементов в списке и затем отсылает этот список дальше по цепи.
+`buffering(int count, int skip)` - копит count элементов, отсылает этот список дальше по цепи, затем пропускает (skip - count) элементов.
+`buffer(int count, TimeUnit unit)` - копит элементы в списке count секунд/минут/etc.
+`buffer(Observable<B> boundary)` - копит элементы в списке до тех пор, пока не произойдет emission в `Observable boundary`.
+
+И небольшой пример использования:
+```java
+Observable.range(1, 10)
+        .buffer(2, 3)
+        .subscribe(System.out::println);
+
+/*
+    [1, 2]
+    [4, 5]
+    [7, 8]
+    [10]
+ */
+```
+
+#### Windowing
