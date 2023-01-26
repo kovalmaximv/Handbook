@@ -11,6 +11,15 @@
    - [Caching](#caching)
    - [Replaying](#replaying)
    - [Subject](#subject)
+3. [Concurrency](#concurrency)
+   - [Schedulers](#concurrency)
+     - [Computation](#computation)
+     - [I/O](#io)
+     - [New thread](#new-thread)
+     - [Single](#single)
+     - [ExecutorService](#executorservice)
+   - [Parallelization](#parallelization)
+4. [Switching, Throttling, Windowing, and Buffering](#switching-throttling-windowing-and-buffering)
 
 
 ## Комбинируем Observable
@@ -280,3 +289,102 @@ sleep(3000);
 
 Еще одна проблема subject - он не потокобезопасен по умолчанию. Чтобы сделать его потокобезопасным, необходимо сделать
 его сериализованным. Для этого есть метод `.toSerialized()`.
+
+## Concurrency
+Для понимания этой главы необходимо иметь минимальные познания в области многопоточного программирования.
+
+Многопоточка в RxJava реализована при помощи пула потоков. Если в Java для этого используется `ExecutorService`, то в 
+RxJava эту же задачу решает `Scheduler`. Чтобы указать `observable`, какой `scheduler` использовать 
+(и использовать ли вообще) вызывается метод `Observable.subscribeOn(Scheduler scheduler)`. По умолчанию, некоторые 
+фабрики `observable` уже поставляются с `scheduler` на борту. Например `Observable.fromCallable()` использует под 
+капотом I/O `scheduler`. И этот `scheduler` **нельзя** переписать, если вызвать метод `subscribeOn()` еще раз.
+
+Если необходимо сменить тип `scheduler` по ходу реактивной цепи, необходимо использовать метод 
+`Observable.observeOn(Scheduler anotherScheduler)`. Данный метод перехватывает все объекты в цепи и меняет поток 
+выполнения исходя из нового `scheduler`.
+
+Есть несколько типов `Scheduler`, каждый под свой тип задач:
+
+#### Computation
+`Schedulers.computation()` выделяет фиксированное количество потоков под выполнение задач. Количество потоков 
+определяется автоматически исходя из доступных ресурсов. Лучше всего подходит под какие-то долгие вычисления, когда
+исполняющий поток не простаивает.
+
+```java
+Observable.just("Alpha", "Beta", "Gamma", "Delta", "Epsilon")
+        .subscribeOn(Schedulers.computation())
+        // do whatever you want
+```
+
+#### I/O
+`Schedulers.io()` выделяет динамическое число поток для выполнения задач. Когда какой-то поток закончил выполнение и
+долго не переиспользовался, он удаляется. При необходимости, когда нет свободных потоков, создаются новые. Лучше
+всего подходит под задачи записи/чтения, когда потоки нагружаются неравномерно из-за ожиданий ввода/вывода.
+
+```java
+Observable<String> customerNames = db.select("select name from customer")
+        .getAs(String.class)
+        .subscribeOn(Schedulers.io())
+        // do whatever you want
+```
+
+#### New thread
+`Schedulers.newThread()` не создает пул потоков, вместо этого создает новый поток для каждого observer и удаляет поток, 
+когда он больше не нужен.
+
+```java
+Observable.just("Alpha", "Beta", "Gamma", "Delta", "Epsilon")
+        .subscribeOn(Schedulers.newThread())
+        // do whatever you want
+```
+
+#### Single
+`Schedulers.single()` выполняет все операции в одном потоке. Может быть полезно для изоляции сегмента, содержащего не 
+потокобезопасные данные.
+
+```java
+Observable.just("Alpha", "Beta", "Gamma", "Delta", "Epsilon")
+        .subscribeOn(Schedulers.single())
+        // do whatever you want
+```
+
+#### ExecutorService
+`Scheduler` так же возможно создать из `ExecutorService`. Это поможет более гибко настраивать пул потоков для RxJava.
+
+```java
+ExecutorService executor = Executors.newFixedThreadPool(20);
+Observable.just("Alpha", "Beta", "Gamma", "Delta", "Epsilon")
+        .subscribeOn(Schedulers.from(executor))
+        .doFinally(executor::shutdown)
+        .subscribe(System.out::println);
+```
+
+## Parallelization
+В предыдущей главе мы разобрались, как конкуретнто запустить выполнение нескольких реактивных цепочек 
+`observable-observer`. Но что если некоторый `observer` поставляет 1000 элементов и мы не хотим, чтобы все они были
+обработаны последовательно. Можно ведь разбить выполнение на 10 потоков и обработать всего 100 элементо в каждом потоке.
+
+Все необходимое для этого мы уже знаем, нам нужно использовать `flatMap` и `subscribeOn`.
+
+```java
+Observable.range(1, 10)
+        .flatMap(i -> Observable.just(i)
+        .subscribeOn(Schedulers.computation())
+        .map(i2 -> intenseCalculation(i2)))
+        .subscribe(i -> System.out.println("Received " + i));
+```
+
+Таким образом каждый элемент обработается в своем потоке. Если мы все же хотим разбить по несколько элементов на один
+поток, необходимо использовать `groupBy`.
+
+```java
+int coreCount = Runtime.getRuntime().availableProcessors();
+AtomicInteger assigner = new AtomicInteger(0);
+Observable.range(1, 10)
+        .groupBy(i -> assigner.incrementAndGet() % coreCount)
+        .flatMap(grp -> grp.observeOn(Schedulers.io())
+        .map(i2 -> intenseCalculation(i2)))
+        .subscribe(i -> System.out.println("Received " + i));
+```
+
+## Switching, Throttling, Windowing, and Buffering
