@@ -21,6 +21,10 @@
    - [Parallelization](#parallelization)
 4. [Switching, Throttling, Windowing, and Buffering](#switching-throttling-windowing-and-buffering)
    - [Buffering](#buffering)
+   - [Windowing](#windowing)
+   - [Throttling](#throttling)
+   - [Switching](#switching)
+5. [Flowable and Backpressure](#flowable-and-backpressure)
 
 
 ## Комбинируем Observable
@@ -396,10 +400,10 @@ Observable.range(1, 10)
 Идея `buffering()` в том, чтобы объединить рассылаемые объекты в список и обработать этот список целиком позже. Возможно
 весь список обработается быстрее, чем каждый элемент по отдельности. Есть несколько перегруженных методов:
 
-`buffering(int count)` - копит count элементов в списке и затем отсылает этот список дальше по цепи.
-`buffering(int count, int skip)` - копит count элементов, отсылает этот список дальше по цепи, затем пропускает (skip - count) элементов.
-`buffer(int count, TimeUnit unit)` - копит элементы в списке count секунд/минут/etc.
-`buffer(Observable<B> boundary)` - копит элементы в списке до тех пор, пока не произойдет emission в `Observable boundary`.
+`buffering(int count)` - копит count элементов в списке и затем отсылает этот список дальше по цепи.  
+`buffering(int count, int skip)` - копит count элементов, отсылает этот список дальше по цепи, затем пропускает (skip - count) элементов.  
+`buffer(int count, TimeUnit unit)` - копит элементы в списке count секунд/минут/etc.  
+`buffer(Observable<B> boundary)` - копит элементы в списке до тех пор, пока не произойдет emission в `Observable boundary`.  
 
 И небольшой пример использования:
 ```java
@@ -416,3 +420,159 @@ Observable.range(1, 10)
 ```
 
 #### Windowing
+Идея `window()` полностью аналогично `buffering()` с той лишь разницей, что вместо списка рассылаемые объекты копятся
+в другом observable. Перегруженные методы `window()` тоже аналогичны `buffering()`.
+
+```java
+Observable.interval(300, TimeUnit.MILLISECONDS)
+        .map(i -> (i + 1) * 300)
+        .window(1, TimeUnit.SECONDS)
+        .flatMapSingle(obs -> obs.reduce("", (total, next) -> total + (total.equals("") ? "" : "|") + next))
+        .subscribe(System.out::println);
+
+/*
+    300|600|900
+    1200|1500|1800
+    2100|2400|2700
+    3000|3300|3600|3900
+    4200|4500|4800
+ */
+```
+
+#### Throttling
+`throttling()` предназначен для того, чтобы принимать только одно значение в реактивной цепи за определенный промежуток 
+времени. Например, если какое-то значение из цепи достаточно обработать лишь один раз или когда пользователь много раз 
+тыкает на кнопку. Существуют следующие перегруженные версии оператора:
+
+`throttleLast(long intervalDuration, TimeUnit unit)` - рассылает только последний полученный элемент, встреченный за 
+указанный промужеток времени.  
+`throttleFirst(long intervalDuration, TimeUnit unit)` - в противоположность throttleLast рассылает первый полученный 
+элемент.  
+`throttleWithTimeout(long intervalDuration, TimeUnit unit) or debounce(..)` - похож на throttleLast, но промежуток 
+времени не статичен и обновляется каждый раз при получении объекта.  
+
+#### Switching
+Оператор `switchMap` отписывается от предыдущего источника и прекращает обработку объекта всякий раз, когда получает 
+новый рассылаемый объект.
+
+```java
+Observable<String> items = Observable.just("Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta");
+
+// Ставим задержку между элементами
+Observable<String> processStrings = items.concatMap(s -> Observable.just(s)
+        .delay(randomSleepTime(), TimeUnit.MILLISECONDS));
+
+Observable.interval(5, TimeUnit.SECONDS)
+        .switchMap(i -> processStrings)
+        .subscribe(System.out::println);
+
+/*
+    Alpha
+    Beta
+    Gamma
+    Delta
+    Epsilon
+    Zeta
+    // Прошло 5 секунд, произошел dispose, обрабатываем элементы заного
+    Alpha
+    Beta
+    Gamma
+    // Прошло 5 секунд, произошел dispose, обрабатываем элементы заного
+    Alpha
+    Beta
+    Gamma
+    Delta
+    // Прошло 5 секунд, произошел dispose, обрабатываем элементы заного
+ */
+```
+
+## Flowable and Backpressure
+Вспомним про проблему, когда observable поставляет данные быстрее, чем observer их поглощает. В предыдущей главе мы 
+пытались решить эту проблему, но на самом деле, это было полумеры. Предыдущие способы стоит использовать, только если 
+в силу некоторых обстоятельств не получилось использовать способы из этой главы. 
+
+Отмечу, что такая проблема в целом не появится при однопоточном выполнении. Посколько всего один поток выполняет 
+реактивную цепочку, observable просто не будет владеть потоком до тех пор, пока observer не обработает рассылаемый 
+объект. Однако когда мы используем многопоточную обработку с помощью `subscribeOn`, то observable отдаст emission в 
+`scheduler` и он продолжит владеть потоком выполнения, так что сможет выслать следующий объект. И так большое 
+количество раз.
+
+```java
+class MyItem {
+    final int id;
+    MyItem(int id) {
+        this.id = id;
+        System.out.println("Constructing MyItem " + id);
+    }
+}
+
+Observable.range(1, 999_999_999)
+        .map(MyItem::new)
+        .observeOn(Schedulers.io())
+        .subscribe(myItem -> {
+            sleep(50);
+            System.out.println("Received MyItem " + myItem.id);
+        });
+
+/*
+    ...
+    Constructing MyItem 1001899
+    Constructing MyItem 1001900
+    Constructing MyItem 1001901
+    Constructing MyItem 1001902
+    Received MyItem 38
+    Constructing MyItem 1001903
+    Constructing MyItem 1001904
+    Constructing MyItem 1001905
+    Constructing MyItem 1001906
+    Constructing MyItem 1001907
+    ..
+ */
+```
+
+#### Flowable
+Основная идея в том, чтобы observable перестал рассылать объекты, если он видит, что observer не успевает их обработать.
+Эту задачу выполняет `Flowable`. Он держит определенное количество объектов в кеше между observable и observer. 
+`Flowable` поддерживает почти все те же операции, что и `Observable`, так же его можно трансформировать в `Observable` 
+и обратно.
+
+```java
+Flowable.range(1, 999_999_999)
+        .map(MyItem::new)
+        .observeOn(Schedulers.io())
+        .subscribe(myItem -> {
+            sleep(50);
+            System.out.println("Received MyItem " + myItem.id);
+        });
+
+/*
+    Constructing MyItem 1
+    Constructing MyItem 2
+    Constructing MyItem 3
+    ...
+    Constructing MyItem 127
+    Constructing MyItem 128
+    Received MyItem 1
+    Received MyItem 2
+    Received MyItem 3
+    ...
+    Received MyItem 95
+    Received MyItem 96
+    Constructing MyItem 129
+    Constructing MyItem 130
+    Constructing MyItem 131
+    ...
+    Constructing MyItem 223
+    Constructing MyItem 224
+    Received MyItem 97
+    Received MyItem 98
+    Received MyItem 99
+    ...
+ */
+```
+
+Вместо `observer` flowable использует `subscriber`. `Subscriber` отличается лишь тем, что вместо метода `dispose` у него
+метод `cancel` и при помощи метода `request()` можно настраивать, пачку данных какого размера он будет обрабатывать. 
+Однако это не влияет на то, сколько данных будет отсылать `flowable`.  ¯\_(ツ)_/¯
+
+#### Creating Flowable
