@@ -25,6 +25,8 @@
    - [Throttling](#throttling)
    - [Switching](#switching)
 5. [Flowable and Backpressure](#flowable-and-backpressure)
+   - [Flowable](#flowable)
+   - [onBackpressureXXX](#onbackpressurexxx)
 
 
 ## Комбинируем Observable
@@ -574,4 +576,48 @@ Flowable.range(1, 999_999_999)
 Вместо `observer` flowable использует `subscriber`. `Subscriber` отличается лишь тем, что вместо метода `dispose` у него
 метод `cancel` и при помощи метода `request()` можно настраивать, пачку данных какого размера он будет обрабатывать.
 
-#### Creating Flowable
+Создать flowable можно при помощи метода `Flowable.create(Func emitter, BackpressureStrategy strategy)` или 
+`toFlowable(BackpressureStrategy strategy)` и `Flowable.generate()`. BackpressureStrategy это объект, реализующий 
+логику обработки объектов, которые observer не успевает обработать. Существуют следующие BackpressureStrategy:
+1) BUFFER - emission сначала попадает в очередь, а из нее в observer. Нужно быть аккуратным, поскольку может привести 
+к OutOfMemory.
+2) DROP - если observer не успевает обрабатывать объекты, то emission просто игнорируется. Поведение продолжается до тех
+пор, пока observer не будет готов взять новый emission.
+3) LATEST - держит только самый последний полученный emission и отдает его в observer по требованию.
+4) MISSING - пустышка вместо BackpressureStrategy, вместо этого необходимую логику BackpressureStrategy нужно 
+будет применить позже при помощи метода `onBackpressureXXX()`. О методе поговорим ниже.
+5) ERROR - Генерирует `MissingBackpressureException` когда observer не успевает обрабатывать emission.
+
+#### onBackpressureXXX
+`onBackPressureBuffer()` берет существующий `Flowable` и применяет к нему логику BackpressureStrategy.BUFFER с момента
+вызова метода. Так же есть перегруженные версии метода, с интересными параметрами. `capacity` устанавливает максимально
+возможную размерность очереди для хранения. `onOverflow` позволяет передать лямбду, которая сработает, когда очередь 
+достигнет предельного значения. Так же можно передать стратегия (BackpressureOverflowStrategy) поведения при увеличении 
+размера очереди. Всего их 3: ERROR - выкидывает ошибку, DROP_OLDEST - удаляет самые старые значения из очереди, 
+DROP_LATEST - удаляет самые новые. 
+
+```java
+Flowable.interval(1, TimeUnit.MILLISECONDS)
+        .onBackpressureBuffer()
+        .observeOn(Schedulers.io())
+        .subscribe(i -> {
+            sleep(5);
+            System.out.println(i);
+        });
+
+/*
+    0 
+    1 
+    2 
+    3 
+    4
+    ...
+ */
+```
+
+`onBackPressureLatest()` по аналогии с предыдущим методом реализует логику BackpressureStrategy.LATEST.
+
+`onBackPressureDrop()` реализует логику BackpressureStrategy.DROP. В метод можно передать лямбду, которая будет 
+обрабатывать удаленные объекты.
+
+## Transformers and Custom operators
