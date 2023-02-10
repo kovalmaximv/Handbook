@@ -47,6 +47,7 @@
      - [doOnEach](./BasicOperators.md#dooneach)
      - [doOnSubscribe, doOnDispose](./BasicOperators.md#doonsubscribe-doondispose)
      - [doFinally](./BasicOperators.md#dofinally)
+   - [Blocking operators](./BasicOperators.md#blocking-operators)
 4. [Реактивные операторы](./ReactiveOperators.md)
    - [Комбинируем Observable](./ReactiveOperators.md#Комбинируем-Observable)
      - [Observable merging](./ReactiveOperators.md#Observable-merging)
@@ -79,7 +80,9 @@
      - [to()](./ReactiveOperators.md#to)
      - [compose()](./ReactiveOperators.md#lift)
      - [lift()](./ReactiveOperators.md#lift)
-
+5. [Testing](./Testing.md#testing)
+   - [TestObserver & TestSubscriber](./Testing.md#testobserver--testsubscriber)
+   - [TestScheduler](./Testing.md#testscheduler)
 
 
 

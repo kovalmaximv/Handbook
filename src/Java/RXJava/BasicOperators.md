@@ -42,6 +42,7 @@
    - [doOnEach](#dooneach)
    - [doOnSubscribe, doOnDispose](#doonsubscribe-doondispose)
    - [doFinally](#dofinally)
+9. [Blocking operators](#blocking-operators)
 
 ## Conditional operators
 Условные операнды (Conditional operators) позволяют пропускать или модифицировать Observable по условию.
@@ -538,3 +539,18 @@ Observable.just("One", "Two", "Three")
    doFinally!
  */
 ```
+
+## Blocking operators
+Blocking operators (блокирующие операторы) блокируют вызывающий поток выполнения в ожидании какого-то результата от 
+реактивной цепи. Можно сказать, это некоторый инструмент, который аварийно соединяет реактивный поток выполнения с 
+обычным. Стоит воздерживаться от использования этих операторов в продуктовой среде, поскольку это антипаттерн, 
+убивающий саму суть (и плюсы) реактивного программирования. 
+
+`blockingSubscribe()` - переводит вызывающий поток в режим ожидания, пока не выполнится реактивная цепочка. То есть 
+пока не будет вызван `onComplete()` или `onError()`.  
+`blockingFirst()` - аналогично, пока не появится первый emission в цепочке.  
+`blockingGet()` - аналогично blockingFirst, только для single и maybe.  
+`blockingLast()` - ожидает, пока не появится последний emission в цепочке.  
+`blockingIterable()` - копит все emission и после завершения работы цепочки отдает их в Iterable.  
+`blockingNext()` - возвращает Iterable и блокирует каждый вызов Iterable.next, пока не получит следующий emission. 
+Emission полученные после одного вызова Iterable.next, но до следующего - блокируются.  
