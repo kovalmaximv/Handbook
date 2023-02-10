@@ -27,6 +27,10 @@
 5. [Flowable and Backpressure](#flowable-and-backpressure)
    - [Flowable](#flowable)
    - [onBackpressureXXX](#onbackpressurexxx)
+6. [Transformers and Custom operators](#transformers-and-custom-operators)
+    - [to()](#to)
+    - [compose()](#lift)
+    - [lift()](#lift)
 
 
 ## Комбинируем Observable
@@ -621,3 +625,104 @@ Flowable.interval(1, TimeUnit.MILLISECONDS)
 обрабатывать удаленные объекты.
 
 ## Transformers and Custom operators
+#### to()
+В некоторых случаях нам необходимо observable передать в метод. Чтобы поддерживать стилистику 'слева направо, сверху
+вниз' в RxJava есть специальный оператор `to()` позволяющий передать текущий observable в указанную ссылку на метод.
+
+```java
+// Было
+Observable seconds = Observable.interval(1, TimeUnit.SECONDS)
+        .map(i -> i.toString());
+SomeClass.someVoidMethod(seconds);
+
+// Стало
+Observable.interval(1, TimeUnit.SECONDS)
+        .map(i -> i.toString())
+        .to(SomeClass::someVoidMethod);
+```
+
+#### compose() 
+Если в реактивных цепочках часто встречается некоторая последовательность операторов, то ее можно выделить в отдельный
+объект и переиспользовать. Очень удобный способ избавления от копипасты, который продумали разработчики RxJava. Для
+этой повторяемая часть цепочки помещается в объект `ObservableTransformer<from, to>`, `FlowableTransformer<from, to>` 
+или версии для `Single`, `Maybe`, `Completable`. Затем при помощи оператора `compose()` вызывается необходимая часть 
+цепочки при необходимости. 
+
+Стоит аккуратно вводить состояние (например некоторые переменные) в такой объект и еще более аккуратно
+разделять это состояние между разными подписчиками. Тут легко можно будет сделать ошибку и сложно потом эту ошибку 
+обнаружить и пофиксить. В целом лучше избегать использования общего состояния.
+
+
+```java
+<T> ObservableTransformer<T, ImmutableList<T>> toImmutableList() {
+        return up -> up.collect(ImmutableList::<T> builder, ImmutableList.Builder::add)
+                            .map(ImmutableList.Builder::build)
+                            .toObservable();
+}
+
+// ...
+
+Observable.just("Alpha", "Beta", "Gamma", "Delta", "Epsilon")
+        .compose(toImmutableList())
+        .subscribe(System.out::println);
+```
+
+#### lift()
+В RxJava можно реализовать свой оператор. Для этого используется интерфейс 
+`ObservableOperator<DownstreamEmission, UpstreamEmission>`, `FlowableOperator<DownstreamEmission, UpstreamEmission>` и 
+версии для `Single`, `Maybe`, `Completable`.
+В этих интерфейсах реализуются методы `onNext`, `onError` и `onComplete`. Затем созданный объект используется
+при помощи оператора `lift()`.
+
+Подходить к созданию своего оператора нужно с осторожностью и лучше использовать этот вариант, когда все остальные не
+сработали. Но 99% рабочих случаев должны покрывать обычные операторы, ObservableTransformer или библиотеки с готовыми
+кастомнмыми операторами от надежных источников (такие как RxJavaExtensions и rxjava2-extras).
+
+```java
+/*
+   кастомный оператор, который выполняет переданное действие, если 
+   не было ни одного emission     
+ */
+ */
+public static <T> ObservableOperator<T,T> doOnEmpty(Action action) {
+     return observer -> new DisposableObserver<T>() {
+         boolean isEmpty = true;
+         
+         @Override 
+         public void onNext(T value) {
+             isEmpty = false;
+             observer.onNext(value);
+         }
+         
+         @Override 
+         public void onError(Throwable t) {
+             observer.onError(t);
+         }
+         
+         @Override 
+         public void onComplete() {
+             if (isEmpty) {
+                 try {
+                     action.run();
+                 } catch (Exception e) {
+                     onError(e);
+                     return;
+                 }
+             }
+             observer.onComplete();
+         }
+     };
+}
+
+//...
+
+Observable.range(1, 5)
+        .lift(doOnEmpty(() -> System.out.println("Operation 1 Empty!")))
+        .subscribe(v -> System.out.println("Operation 1: " + v));
+```
+
+При реализации своего оператора есть 3 контракта:
+1) Не вызывать `onComplete()` после `onError()`
+2) Не вызывать `onNext()` после `onComplete()` или `onError()`
+3) Не вызывать ничего после disposal
+

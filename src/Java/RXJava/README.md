@@ -75,12 +75,18 @@
    - [Flowable and Backpressure](./ReactiveOperators.md#flowable-and-backpressure)
      - [Flowable](./ReactiveOperators.md#flowable)
      - [onBackpressureXXX](./ReactiveOperators.md#onbackpressurexxx)
+   - [Transformers and Custom operators](./ReactiveOperators.md#transformers-and-custom-operators)
+     - [to()](./ReactiveOperators.md#to)
+     - [compose()](./ReactiveOperators.md#lift)
+     - [lift()](./ReactiveOperators.md#lift)
 
 
 
 
 ## Полезные ссылки
 1) Документация по операторам. https://reactivex.io/documentation/operators.html
+2) Расширение RxJava с новыми операторами. https://github.com/akarnokd/RxJavaExtensions
+3) Еще одна расширение RxJava. https://github.com/davidmoten/rxjava2-extras
 
 ## Литература
 1) Learning RxJava. Nick Samoylov , Thomas Nield.
