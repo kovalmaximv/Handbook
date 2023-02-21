@@ -14,5 +14,5 @@
 [🧼 SOAP](./src/Common/SOAP)
 
 ## Софт скиллы
-[📝 Джедайские техники](./src/Soft/jedis_techniques)
+[📝 Джедайские техники](./src/Soft/jedis_techniques)  
 [🐈 Как пасти котов(work in progress)](./src/Soft/pasti_cotov/README.md)
