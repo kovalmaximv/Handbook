@@ -15,4 +15,4 @@
 
 ## Софт скиллы
 [📝 Джедайские техники](./src/Soft/jedis_techniques)  
-[🐈 Как пасти котов(work in progress)](./src/Soft/pasti_cotov/README.md)
+[🐈 Как пасти котов](./src/Soft/pasti_cotov/README.md)
