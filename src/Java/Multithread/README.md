@@ -10,6 +10,10 @@
    2.1. [TaskExecutor](./1_TaskExecution.md)  
    2.2. [Отмена и выключение задач](./2_CancelAndShutdown.md)  
    2.3. [Применение пулов потоков](./3_ThreadPool.md)  
+3. [Проблемы многопоточности](./3_LivenessPerformance)  
+   3.1. [DeadLock](./3_LivenessPerformance/1_DeadLockAndOtherHazards.md)  
+   3.2. [Проблемы производительности](./3_LivenessPerformance/2_PerformanceAndScaling.md)  
+   3.3. [Тестирование](./3_LivenessPerformance/3_TestingConcurrency.md)
 
 ## Литература
 1) Java concurrency in practice. Brian Goetz.
