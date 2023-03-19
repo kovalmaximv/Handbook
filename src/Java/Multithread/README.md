@@ -14,6 +14,9 @@
    3.1. [DeadLock](./3_LivenessPerformance/1_DeadLockAndOtherHazards.md)  
    3.2. [Проблемы производительности](./3_LivenessPerformance/2_PerformanceAndScaling.md)  
    3.3. [Тестирование](./3_LivenessPerformance/3_TestingConcurrency.md)
+4. [Продвинутые темы](./4_Advanced)  
+   4.1. [Явные замки](./4_Advanced/1_ExplicitLock.md)  
+   4.2. [Атомарные переменные и неблокирующая синхронизация](./4_Advanced/2_AtomicAndNonBlocking.md)
 
 ## Литература
 1) Java concurrency in practice. Brian Goetz.

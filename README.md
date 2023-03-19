@@ -2,7 +2,7 @@
 Небольшой репозиторий знаний.
 
 ## Java
-[🧵 Multithread(Refactoring in progress)](./src/Java/Multithread)  
+[🧵 Multithread](./src/Java/Multithread)  
 [🌐 WebService](./src/Java/WebService)  
 [🙈 RxJava](./src/Java/RXJava)
 
