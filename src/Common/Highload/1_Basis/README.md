@@ -13,5 +13,5 @@
    2.1. [Введение](2_InformationSystems.md#модели-данных-и-языки-запросов)  
    2.2. [Реляционная модель vs Документоориентированная модель](2_InformationSystems.md#реляционная-модель-vs-документоориентированная-модель)  
    2.3. [MapReduce](2_InformationSystems.md#mapreduce)  
-   2.3. [Графоподобные модели данных](2_InformationSystems.md#графоподобные-модели-данных)  
-   2.3. [Итоги](2_InformationSystems.md#итоги)  
+   2.4. [Графоподобные модели данных](2_InformationSystems.md#графоподобные-модели-данных)  
+   2.5. [Итоги](2_InformationSystems.md#итоги)  
