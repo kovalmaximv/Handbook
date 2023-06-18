@@ -9,6 +9,9 @@
 ## CICD
 [🐜 Kubernetes](./src/CICD/Kubernetes)
 
+## Tools
+[☘️Kafka(Work in progress)](./src/tools/Kafka)
+
 ## Общеобразовательное
 [🌐 Компьютерные сети](./src/Common/Computer_network)  
 [🧼 SOAP](./src/Common/SOAP)  
