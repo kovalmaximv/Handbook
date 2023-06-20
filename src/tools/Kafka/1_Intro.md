@@ -24,3 +24,82 @@ Kafka - брокер сообщений, способный выдерживат
 помешает другим группам (они даже ничего не узнают) и после сбоя группа аналитиков сможет читать сообщения с того же 
 места.
 
+## Kafka CLI
+Производить различные действия с кафкой можно при помощи различных утилит, поставляемых вместе с кафкой в папке `bin`.
+Это инструменты командной строки (Command Line Instrument). Приведу неполное описание, по остальным утилитам
+можно найти информацию в интернете:
+1) kafka-server-start.sh - запускает Kafka Server, используя передаваемый файл с конфигами (sample файл поставляется 
+вместе с кафкой).
+2) kafka-server-stop.sh - останавливает Kafka Server.
+3) zookeeper-server-start.sh - запускает Zookeeper Server, используя передаваемый файл с конфигами.
+4) zookeeper-server-stop.sh - останавливает Zookeeper Server.
+5) kafka-cluster.sh - получить ID кластера Kafka.
+6) zookeeper-shell.sh - присоединиться к Zookeeper shell.
+7) kafka-broker-api-versions.sh - получить информацию о брокере.
+8) kafka-topics.sh - создать/изменить/удалить топик.
+9) kafka-delete-records.sh - удалить данные из партиции.
+10) kafka-console-producer.sh - тестовый продюсер для записи данных в топик из консоли.
+11) kafka-console-consumer.sh - тестовый консюмер для чтения данных из топика в консоли. 
+12) kafka-producer-perf-test.sh - позволяет записать большое количество данных в топик для нагрузочного тестирования.
+13) kafka-consumer-groups.sh - получение активных групп получателей.
+
+
+## Логи
+Кафка пишет логи в папку `logs`. Основные логи пишутся в файл `server.log`, вспомогательные в различные другие файлы.
+
+## Конфиги для получателей
+`AutoOffsetReset = [latest, earliest, none]`  
+Задает логику чтения для получателей, у которых не записан `offset` по топику:  
+`latest` - пропустить все старые записи и начать чтение с новых сообщений.  
+`earliest` - прочитать все сообщения из топика, затем получать новые сообщения.  
+`none` - выкинуть ошибку, если offset для получателя не задан.
+
+`EnableAutoCommit = [true|false]`  
+Если true, то получатель будет автоматически отправлять offset по топику.
+
+## Практика
+Запустим Zookeeper:
+```bash
+./bin/zookeeper-server-start.sh config/zookeeper.properties
+```
+
+Запустим Kafka Server:
+```bash
+./bin/kafka-server-start.sh config/server.properties
+```
+
+Мы должны увидеть сообщения, которые скажут о том, что брокер
+1. подключился к ZooKeeper: `INFO [ZooKeeperClient Kafka server] Connected. (kafka.zookeeper.ZooKeeperClient)`
+2. стартовал и получил идентификатор: `INFO [KafkaServer id=0] started (kafka.server.KafkaServer)`
+
+Создадим топик:
+```bash
+./bin/kafka-topics.sh --create --topic test --bootstrap-server localhost:9092
+```
+
+Посмотрим описание созданного топика:
+```bash
+./bin/kafka-topics.sh --describe --topic test --bootstrap-server localhost:9092
+```
+
+Увидим следующее:
+```bash
+Topic: test	TopicId: BxJo_cf9QZqPI-CW-scVBQ PartitionCount: 1 	ReplicationFactor: 1	Configs: 
+Topic: test	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
+```
+
+Запишем сообщение в топик:
+```bash
+./bin/kafka-console-producer.sh --topic test --bootstrap-server localhost:9092
+>Hello world!
+```
+
+Прочитаем данные из топика (обратим внимание на конфиг auto.offset.reset):
+```bash
+./bin/kafka-console-consumer.sh --topic test --bootstrap-server localhost:9092 --consumer-property auto.offset.reset=earliest
+```
+
+Удалим топик:
+```bash
+./bin/kafka-topics.sh --delete --topic test --bootstrap-server localhost:9092
+```
