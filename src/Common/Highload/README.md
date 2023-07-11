@@ -5,6 +5,8 @@
    1.2. [Модели данных и языки запросов](./1_Basis/2_InformationSystems.md)  
    1.3. [Подсистемы хранения и извлечения данных](./1_Basis/3_InformationSystemTechnique.md)  
    1.4. [Сериализация](./1_Basis/4_Serialization.md)  
+2. [Распределенные данные](./2_DistributedData)  
+   2.1 [Репликации](./2_DistributedData/1_Replication.md)
 
 ## Источники
 1) Высоконагруженные приложения. Мартин Клеппман.
