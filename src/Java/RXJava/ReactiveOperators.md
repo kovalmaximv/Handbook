@@ -371,7 +371,7 @@ Observable.just("Alpha", "Beta", "Gamma", "Delta", "Epsilon")
 ```
 
 ## Parallelization
-В предыдущей главе мы разобрались, как конкуретнто запустить выполнение нескольких реактивных цепочек 
+В предыдущей главе мы разобрались, как конкурентно запустить выполнение нескольких реактивных цепочек 
 `observable-observer`. Но что если некоторый `observer` поставляет 1000 элементов и мы не хотим, чтобы все они были
 обработаны последовательно. Можно ведь разбить выполнение на 10 потоков и обработать всего 100 элементо в каждом потоке.
 
@@ -380,8 +380,8 @@ Observable.just("Alpha", "Beta", "Gamma", "Delta", "Epsilon")
 ```java
 Observable.range(1, 10)
         .flatMap(i -> Observable.just(i)
-        .subscribeOn(Schedulers.computation())
-        .map(i2 -> intenseCalculation(i2)))
+            .subscribeOn(Schedulers.computation())
+            .map(i2 -> intenseCalculation(i2)))
         .subscribe(i -> System.out.println("Received " + i));
 ```
 
