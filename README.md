@@ -6,8 +6,9 @@
 [🌐 WebService](./src/Java/WebService)  
 [🙈 RxJava](./src/Java/RXJava)
 
-## CICD
-[🐜 Kubernetes](./src/CICD/Kubernetes)
+## Devops
+[🐜 Kubernetes](src/DEVOPS/Kubernetes)
+[💁‍♂️ Jenkins 101](src/DEVOPS/Jenkins)
 
 ## Tools
 [☘️Kafka(Work in progress)](./src/tools/Kafka)
