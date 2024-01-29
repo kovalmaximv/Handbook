@@ -18,6 +18,9 @@
 [🧼 SOAP](./src/Common/SOAP)  
 [🐗 Высоконагруженные приложения(Work in progress)](./src/Common/Highload)
 
+## Архитектурная секция
+[Tinder](./src/SystemDesign/Tinder)
+
 ## Софт скиллы
 [📝 Джедайские техники](./src/Soft/jedis_techniques)  
 [🐈 Как пасти котов](./src/Soft/pasti_cotov/README.md)
