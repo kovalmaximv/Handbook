@@ -20,6 +20,7 @@
 
 ## Архитектурная секция
 [👩‍❤️‍👨 Tinder](./src/SystemDesign/Tinder)
+[✈️ Telegram](./src/SystemDesign/Telegram)
 
 ## Софт скиллы
 [📝 Джедайские техники](./src/Soft/jedis_techniques)  
