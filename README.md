@@ -19,8 +19,13 @@
 [🐗 Высоконагруженные приложения(Work in progress)](./src/Common/Highload)
 
 ## Архитектурная секция
-[👩‍❤️‍👨 Tinder](./src/SystemDesign/Tinder)
-[✈️ Telegram](./src/SystemDesign/Telegram)
+[🔑 Key value storage](./src/SystemDesign/KeyValueStorage)  
+[👮‍♂️ Rate limiter](./src/SystemDesign/RateLimiter)  
+[✈️ Telegram](./src/SystemDesign/Telegram)  
+[👩‍❤️‍👨 Tinder](./src/SystemDesign/Tinder)  
+[🦄 Unique ID generator](./src/SystemDesign/UniqueIDGenerator)  
+[✂️ Url shortener](./src/SystemDesign/UrlShortener)  
+[🕸 Web crawler](./src/SystemDesign/WebCrawler)  
 
 ## Софт скиллы
 [📝 Джедайские техники](./src/Soft/jedis_techniques)  
