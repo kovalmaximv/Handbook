@@ -19,7 +19,8 @@
 [🐗 Высоконагруженные приложения(Work in progress)](./src/Common/Highload)
 
 ## Архитектурная секция
-[🔑 Key value storage](./src/SystemDesign/KeyValueStorage)  
+[🔔 Notification system](./src/SystemDesign/NotificationSystem)  
+[🔑 Notification system](./src/SystemDesign/KeyValueStorage)  
 [👮‍♂️ Rate limiter](./src/SystemDesign/RateLimiter)  
 [✈️ Telegram](./src/SystemDesign/Telegram)  
 [👩‍❤️‍👨 Tinder](./src/SystemDesign/Tinder)  
