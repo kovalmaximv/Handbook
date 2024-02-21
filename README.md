@@ -20,6 +20,7 @@
 
 ## Архитектурная секция
 [🔔 Notification system](./src/SystemDesign/NotificationSystem)  
+[📰 News Feed System](./src/SystemDesign/NewsFeedSystem)  
 [🔑 Notification system](./src/SystemDesign/KeyValueStorage)  
 [👮‍♂️ Rate limiter](./src/SystemDesign/RateLimiter)  
 [✈️ Telegram](./src/SystemDesign/Telegram)  
