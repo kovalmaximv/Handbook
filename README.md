@@ -28,6 +28,7 @@
 [🦄 Unique ID generator](./src/SystemDesign/UniqueIDGenerator)  
 [✂️ Url shortener](./src/SystemDesign/UrlShortener)  
 [🕸 Web crawler](./src/SystemDesign/WebCrawler)  
+[📺 Youtube](./src/SystemDesign/Youtube)  
 
 ## Софт скиллы
 [📝 Джедайские техники](./src/Soft/jedis_techniques)  
