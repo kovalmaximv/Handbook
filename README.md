@@ -19,6 +19,7 @@
 [🐗 Высоконагруженные приложения(Work in progress)](./src/Common/Highload)
 
 ## Архитектурная секция
+[☁️ Cloud storage](./src/SystemDesign/CloudStorage)  
 [🔔 Notification system](./src/SystemDesign/NotificationSystem)  
 [📰 News Feed System](./src/SystemDesign/NewsFeedSystem)  
 [🔑 Notification system](./src/SystemDesign/KeyValueStorage)  
