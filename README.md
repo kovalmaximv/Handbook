@@ -33,5 +33,5 @@
 
 ## Книги на софт скиллы
 [📝 Джедайские техники](./src/Soft/jedis_techniques)  
-[🐈 Как пасти котов](./src/Soft/pasti_cotov/README.md)
+[🐈 Как пасти котов](./src/Soft/pasti_cotov/README.md)  
 [🥂 Мама, я тимлид](./src/Soft/mama_ya_teamlead/README.md)
