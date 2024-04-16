@@ -22,7 +22,7 @@
 [☁️ Cloud storage](./src/SystemDesign/CloudStorage)  
 [🔔 Notification system](./src/SystemDesign/NotificationSystem)  
 [📰 News Feed System](./src/SystemDesign/NewsFeedSystem)  
-[🔑 Notification system](./src/SystemDesign/KeyValueStorage)  
+[🔑 Key value storage](./src/SystemDesign/KeyValueStorage)  
 [👮‍♂️ Rate limiter](./src/SystemDesign/RateLimiter)  
 [✈️ Telegram](./src/SystemDesign/Telegram)  
 [👩‍❤️‍👨 Tinder](./src/SystemDesign/Tinder)  
