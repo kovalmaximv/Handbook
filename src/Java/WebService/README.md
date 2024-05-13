@@ -8,9 +8,89 @@
 
 ![java_webservice_example.png](../../../img/web_service/java_webservice_example.png)
 
-Для обеспечения независимости от платформы веб сервисы предоставляют WSDL файлы. При помощи него можно сгенерировать 
+Для обеспечения независимости от платформы веб сервисы предоставляют WSDL файлы. При помощи его можно сгенерировать 
 клиент, который будет обращаться к данному веб сервису. Инструменты для генерации клиентов есть для всех популярных 
-языков.
+языков. В WSDL есть следующие блоки:
+1) Definitions - определяет namespaces
+2) Types - определяет типы данных, используемых в веб сервисе
+3) Messages - определяет запросы и ответы различных эндпоинтов (в том числе ответы с ошибками)
+4) PortType - определяет операции. Это все возможные эндпоинты веб сервиса (в том числе ответы с ошибками)
+5) Services - определяет адрес веб сервиса для port type
+
+Пример WSDL:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions 
+  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+  xmlns:tns="http://topdown.server.jaxws.baeldung.com/"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://schemas.xmlsoap.org/wsdl/"
+  targetNamespace="http://topdown.server.jaxws.baeldung.com/"
+  qname="EmployeeServiceTopDown">
+    <types>
+        <xsd:schema 
+          targetNamespace="http://topdown.server.jaxws.baeldung.com/">
+            <xsd:element name="countEmployeesResponse" type="xsd:int"/>
+        </xsd:schema>
+    </types>
+
+    <message name="countEmployees">
+    </message>
+    <message name="countEmployeesResponse">
+        <part name="parameters" element="tns:countEmployeesResponse"/>
+    </message>
+    <portType name="EmployeeServiceTopDown">
+        <operation name="countEmployees">
+            <input message="tns:countEmployees"/>
+            <output message="tns:countEmployeesResponse"/>
+        </operation>
+    </portType>
+    <binding name="EmployeeServiceTopDownSOAP" 
+      type="tns:EmployeeServiceTopDown">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" 
+          style="document"/>
+        <operation name="countEmployees">
+            <soap:operation 
+              soapAction="http://topdown.server.jaxws.baeldung.com/
+              EmployeeServiceTopDown/countEmployees"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+    </binding>
+    <service name="EmployeeServiceTopDown">
+        <port name="EmployeeServiceTopDownSOAP" 
+          binding="tns:EmployeeServiceTopDownSOAP">
+            <soap:address 
+              location="http://localhost:8080/employeeservicetopdown"/>
+        </port>
+    </service>
+</definitions>
+```
+
+И сгенерированный Java WebService:
+```java
+@WebService(
+  name = "EmployeeServiceTopDown", 
+  targetNamespace = "http://topdown.server.jaxws.baeldung.com/")
+@SOAPBinding(parameterStyle = SOAPBinding.ParameterStyle.BARE)
+@XmlSeeAlso({
+    ObjectFactory.class
+})
+public interface EmployeeServiceTopDown {
+    @WebMethod(
+      action = "http://topdown.server.jaxws.baeldung.com/"
+      + "EmployeeServiceTopDown/countEmployees")
+    @WebResult(
+      name = "countEmployeesResponse", 
+      targetNamespace = "http://topdown.server.jaxws.baeldung.com/", 
+      partName = "parameters")
+    public int countEmployees();
+}
+```
 
 В Java есть своя технология для реализации и называется она Java WebService. Как правило, сейчас при проектировании 
 новых систем стараются избегать этой технологии. Но в старых legacy проектах Java WebServices встречается часто.
@@ -20,7 +100,8 @@
 на Java 11+. 
 
 Существует два типа WebService:
-1) SOAP - Java библиотека JAX-WS (Java API for XML Web Services). Встречается чаще.
+1) SOAP - Java библиотека JAX-WS (Java API for XML Web Services). Встречается чаще. Существует фреймворк Apache CXF, 
+который еще упрощает работу с jax-ws.
 2) REST - Java библиотека JAX-RS (Java API for XML Rest web Services)
 
 ## Практика
