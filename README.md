@@ -16,7 +16,8 @@
 ## Общеобразовательное
 [🌐 Компьютерные сети](./src/Common/Computer_network)  
 [🧼 SOAP](./src/Common/SOAP)  
-[🐗 Высоконагруженные приложения(Work in progress)](./src/Common/Highload)
+[🐗 Высоконагруженные приложения](./src/Common/Highload)
+[🧹Clean Code](./src/Common/CleanCode)
 
 ## Архитектурная секция
 [☁️ Cloud storage](./src/SystemDesign/CloudStorage)  
