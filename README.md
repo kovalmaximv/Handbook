@@ -20,6 +20,7 @@
 [🧹Clean Code](./src/Common/CleanCode)
 
 ## Архитектурная секция
+[🏗 Основы архитектуры](./src/SystemDesign/Architecture101)
 [☁️ Cloud storage](./src/SystemDesign/CloudStorage)  
 [🔔 Notification system](./src/SystemDesign/NotificationSystem)  
 [📰 News Feed System](./src/SystemDesign/NewsFeedSystem)  
