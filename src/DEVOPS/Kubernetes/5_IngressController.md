@@ -4,7 +4,8 @@ Ingress - объект k8s, предоставляющий внешний дос
 Представим, что у нас есть два деплоя с сервисом типа LoadBalancer:
 ![ingress_load_balancer_problem.png](../../../img/k8s/ingress_load_balancer_problem.png)
 Такая схема будет работать, но в ней есть нюанс: каждый LoadBalancer стоит денег. И чем больше будет 
-разрастаться наша система, тем больше нужно LoadBalancer'ов и тем больше все это будет стоить.
+разрастаться наша система, тем больше нужно LoadBalancer'ов и тем больше все это будет стоить. Так же на каждый
+balancer нужно выдумывать хост или порт.
 
 Благо, k8s предлагает решение этой проблемы, **ingress controller**:
 ![ingress_solution.png](../../../img/k8s/ingress_solution.png)
