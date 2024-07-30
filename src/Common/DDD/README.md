@@ -58,5 +58,137 @@ model меняться будет крайне редко, если бизнес
 решения можно в generic доменных областях. Например, для интернет-магазина это ведение бух учета сотрудника. 
 Разрабатывать собственное решение тут будет странно, поэтому можно просто использовать 1С. 
 
+Существует два типа доменной модели: **богатая и анемичная**. Богатая доменная модель содержит вместе данные и логику 
+работы с этими данными (другими словами имеет сильную инкапсуляцию). Анемичная доменная модель содержит отдельно данные,
+отдельно логику по работе (entity, services, sql хранимки и тд). По DDD нужно стремиться к богатой модели.
+
+Пример анемичной доменной модели - всем известный паттерн, когда у нас есть entity Person и сервис для работы с ним
+PersonService. Минус такого подхода в том, что сущность Person никак не ограничивает изменение данных:
+```java
+class Person {
+    private String name;
+    private String email;
+    private boolean isEmployee;
+    
+    // getters and setters
+}
+```
+Мы можем свободно менять любое из полей класса, хотя эти поля могут быть связаны каким-нибудь инвариантом, например
+человек считается сотрудником, если у него email корпоративного домена. В случае с анемичной моделью мы можем поменять
+свойство isEmployee, оставив при этом старый email и наоборот. Инвариант в таком случае нарушится, что влечет за собой 
+возникновение ошибок. Анемичная модель в целом создает лишнюю когнитивную нагрузку, потому что хороший разработчик 
+будет постоянно думать: какие операции с моделью являются валидными, а какие нет.
+
+По DDD **анемичную модель надо рефакторить**, чтобы привести ее к богатой модели. Рефакторинг состоит из двух шагов:
+ввести строгую типизацию, уменьшить количество методов, которые могут изменять состояние модели. Под введением строгой
+типизации предлагается введение объектов там, где это возможно: email хранить не в строке, а в специальном объекте 
+Email, status не в строке, а в отдельном объекте и так далее. Все эти новые введеные объекты называются ValueObjects. 
+По возможности управление инвариантами модели следует вынести туда. Под уменьшением количества методов подразумевается
+удаление лишних сеттеров и доступов к внутренним свойствам класса. Допустим у нас есть класс Customer у которого есть
+массив заказов. У массива заказов есть сеттеры и геттеры. DDD говорит, что сеттеры и геттеры необходимо убрать и ввести
+специальные методы для добавления/удаления/изменения заказа. Таким образом изменение списка заказов будет происходить в 
+одном месте и будет проще следить за соблюдением инварианта. В противном случае за соблюдением инвариантов придется 
+следить везде, где изменяется список заказов, есть большой шанс забыть хотя бы в одном месте соблюдение инварианта. 
+**Всю логику из сервисов необходимо стараться перемещать в сущности, а из сущностей в value objects.**
+
+Таким образом анемичная модель Customer:
+```java
+public class Customer {
+    private String name; // getters, setters
+    private String email; // getters, setters
+    private String status; // getters, setters
+    private List<Order> orders; // getters, setters
+    private double currentDiscount; // getters, setters
+}
+
+public class CustomerService {
+    public void addOrder(Customer customer, Product product, int quantity) {
+        customer.getOrders().add(new Order(product, quantity));
+        if (customer.getOrders().size() > 10) {
+            customer.setStatus("Advanced");
+        }
+    }
+}
+```
+После рефакторинга превратится в такую богатую модель:
+```java
+public class Customer {
+    private String name; // getter
+    private Email email; // getter
+    private Status status; // getter
+    private List<Order> orders; // no getter and no setter
+    
+    public Discount getDiscount() {
+        return status.getDiscount();
+    }
+    
+    public ImmutableList<Order> getOrders() {
+        return ImmutableList.of(orders);
+    }
+    
+    public void addOrder(Product product, int quantity) {
+        orders.add(new Order(product, quantity));
+        if (orders.size() > 10) {
+            status = Status.ADVANCED;
+        }
+    }
+    
+}
+```
+Таким образом модель стала богатая и по-максимуму сама следит за выполнением своих инвариантов. В идеале для какого-либо 
+изменения класса необходимо вызвать всего один метод этого класса. 
+
+**Доменная модель должна быть ответственна только за моделирование бизнес домена**. Она ничего не должна знать и 
+изолирована от влияния БД, внешние сервисы, API и тд. Доменная модель сложна сама по себе, не нужно усложнять ее 
+лишними связями. Внешние сервисы общаются с вашей доменной моделью при помощи сервисов.
+
+# DDD триллема
+Триллема состоит в том, что из трех свойств изоляция доменой модели, инкапсуляция (богатство) доменой модели и скорость 
+работы можно выбрать только два.
+
+Представим такой пример: нам надо сделать метод контролера, который бы изменял email пользователя. Но email должен быть
+уникальным. Существует три способа решения данной проблемы.
+
+Изоляция + скорость. Инкапсуляция страдает, поскольку за инвариантом уникальности сущности теперь следит контролер.  
+```java
+public class CustomerController {
+    public void updateEmail(String customerId, Email email) {
+        Customer emailCustomer = customerRepository.getByEmail(email);
+        
+        if (emailCustomer != null && emailCustomer.getCustomerId() != customerId) {
+            throw new RuntimeException("Email already set for another customer");
+        }
+        
+        Customer customer = customerRepository.getById(customerId);
+        customer.changeEmail(email);
+        customerRepository.save(customer);
+    }
+}
+```
+
+Инкапсуляция + скорость.  Изоляция страдает, поскольку в сущности теперь есть ссылка на репозиторий (а значит на БД).
+```java
+public class CustomerController {
+    public void updateEmail(String customerId, Email email) {
+        Customer customer = customerRepository.getById(customerId);
+        customer.changeEmail(email, customerRepository); // проверки уникальности внутри Customer
+        customerRepository.save(customer);
+    }
+}
+```
+
+Изоляция + инкапсуляция. Теряется скорость работы.
+```java
+public class CustomerController {
+    public void updateEmail(String customerId, Email email) {
+        List<Customer> emailCustomers = customerRepository.getAllByEmail(email);
+        Customer customer = customerRepository.getById(customerId);
+        customer.changeEmail(emailCustomers, email); // проверки уникальности внутри Customer
+        customerRepository.save(customer);
+    }
+}
+```
+
+
 # Источники
 1) Владимир Хориков — Domain-driven design: Cамое важное. https://www.youtube.com/watch?v=JOy_SNK3qj4
