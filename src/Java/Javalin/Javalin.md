@@ -151,3 +151,25 @@ public class AuthFilter {
     }
 }
 ```
+
+# Exception handlers
+Все exception можно перехватывать и отправлять на фронт необходимый статус и вид ошибки. По сути по-похожему принципу 
+работает exception handlers в spring web.
+
+```java
+public class ExceptionHandler {
+
+    public static void main(String[] args) {
+        Javalin.create(ExceptionHandler::setupJavalin)
+                .exception(RuntimeException.class, (e, ctx) -> ctx.status(500).result(e.getMessage()))
+                .start(8080);
+    }
+
+    private static void setupJavalin(JavalinConfig config) {
+        config.router.apiBuilder(() ->
+            path("/supply", () -> {
+                post(ctx -> { throw new RuntimeException("Show this to postman"); });
+            }));
+    }
+}
+```
