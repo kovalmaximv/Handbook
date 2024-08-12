@@ -5,6 +5,7 @@
 [🧵 Multithread](./src/Java/Multithread)  
 [🌐 WebService](./src/Java/WebService)  
 [🙈 RxJava](./src/Java/RXJava)
+[🏹 Javalin](./src/Java/Javalin)
 
 ## Devops
 [🐜 Kubernetes](src/DEVOPS/Kubernetes)  
