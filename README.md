@@ -22,7 +22,10 @@
 
 ## Архитектурная секция
 [🏗 Основы архитектуры](./src/SystemDesign/Architecture101)  
-[💼 DDD(Work in progress)](./src/Common/DDD)  
+[💼 DDD(Work in progress)](./src/Common/DDD)   
+[🥅 Api Gateway](./src/SystemDesign/API_Gateway)
+
+## Архитектурные каты
 [☁️ Cloud storage](./src/SystemDesign/CloudStorage)  
 [🔔 Notification system](./src/SystemDesign/NotificationSystem)  
 [📰 News Feed System](./src/SystemDesign/NewsFeedSystem)  
@@ -33,8 +36,7 @@
 [🦄 Unique ID generator](./src/SystemDesign/UniqueIDGenerator)  
 [✂️ Url shortener](./src/SystemDesign/UrlShortener)  
 [🕸 Web crawler](./src/SystemDesign/WebCrawler)  
-[📺 Youtube](./src/SystemDesign/Youtube)  
-[🥅 Api Gateway](./src/SystemDesign/API_Gateway)
+[📺 Youtube](./src/SystemDesign/Youtube)
 
 ## Книги на софт скиллы
 [📝 Джедайские техники](./src/Soft/jedis_techniques)  
