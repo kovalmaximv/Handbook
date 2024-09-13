@@ -34,7 +34,7 @@
 [✂️ Url shortener](./src/SystemDesign/UrlShortener)  
 [🕸 Web crawler](./src/SystemDesign/WebCrawler)  
 [📺 Youtube](./src/SystemDesign/Youtube)  
-[🥅Api Gateway](./src/SystemDesign/API_Gateway)
+[🥅 Api Gateway](./src/SystemDesign/API_Gateway)
 
 ## Книги на софт скиллы
 [📝 Джедайские техники](./src/Soft/jedis_techniques)  
