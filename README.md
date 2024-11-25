@@ -12,7 +12,7 @@
 [💁‍♂️ Jenkins 101](src/DEVOPS/Jenkins)
 
 ## Tools
-[☘️Kafka(Work in progress)](./src/tools/Kafka)
+[☘️Kafka(Work in progress)](./src/tools/Kafka)  
 [🎺Kafka Streams](./src/tools/KafkaStreams)
 
 ## Общеобразовательное
