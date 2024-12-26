@@ -24,7 +24,7 @@
 ## Архитектурная секция
 [🏗 Основы архитектуры](./src/SystemDesign/Architecture101)  
 [💼 DDD](./src/Common/DDD)   
-[🥅 Api Gateway](./src/SystemDesign/API_Gateway)
+[🥅 Api Gateway](./src/SystemDesign/API_Gateway)  
 [🎫 Event Sourcing](./src/SystemDesign/EventSourcing)
 
 ## Архитектурные каты
