@@ -23,8 +23,9 @@
 
 ## Архитектурная секция
 [🏗 Основы архитектуры](./src/SystemDesign/Architecture101)  
-[💼 DDD(Work in progress)](./src/Common/DDD)   
+[💼 DDD](./src/Common/DDD)   
 [🥅 Api Gateway](./src/SystemDesign/API_Gateway)
+[🎫 Event Sourcing](./src/SystemDesign/EventSourcing)
 
 ## Архитектурные каты
 [☁️ Cloud storage](./src/SystemDesign/CloudStorage)  
