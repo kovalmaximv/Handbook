@@ -26,7 +26,8 @@
 [💼 DDD](./src/Common/DDD)   
 [🥅 Api Gateway](./src/SystemDesign/API_Gateway)  
 [🎫 Event Sourcing](./src/SystemDesign/EventSourcing)  
-[🗡 Saga](./src/SystemDesign/Saga)
+[🗡 Saga](./src/SystemDesign/Saga)  
+[🧢 CAP & PACELC](./src/SystemDesign/CAP_PACELS)
 
 ## Архитектурные каты
 [☁️ Cloud storage](./src/SystemDesign/CloudStorage)  
