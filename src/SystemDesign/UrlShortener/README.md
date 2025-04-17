@@ -1,5 +1,13 @@
 # Url Shortener
 
+# Уточняющие вопросы
+1) Какой масштаб нагрузки на сервис?
+2) Ограничения на содержимое short url? Для удобочитаемости кажется хорошо иметь только буквы и цифры
+3) Насколько коротким должен быть shortUrl
+4) Могут ли пользователи задавать свое имя shortUrl
+5) Могут ли пользователи изменять или удалять shortUrl
+6) Как долго живут shortUrl
+
 ## Требования
 1) Сокращение длинных url и выдача short url
 2) short url состоят из букв и цифр
@@ -13,7 +21,7 @@
 4) Средняя длина url - 100 символов, тогда хранение данных за 10 лет потребует 365млрд * 100 * 10 = 37TB
 
 ## High level design 
-API endpoints:
+API endpoints (кажется можно не указывать, где именно будут параметры - долго):
 1) URL Shortening: POST api/v1/data/shortening body:{longUrl: "..."}
 2) URL redirecting: GET api/v1/{shortUrl} return 301 status and long url in header
 

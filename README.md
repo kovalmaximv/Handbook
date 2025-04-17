@@ -41,6 +41,7 @@
 [✂️ Url shortener](./src/SystemDesign/UrlShortener)  
 [🕸 Web crawler](./src/SystemDesign/WebCrawler)  
 [📺 Youtube](./src/SystemDesign/Youtube)
+[🍽️ Restaurant](./src/SystemDesign/RestaurantReservation)
 
 ## Книги на софт скиллы
 [📝 Джедайские техники](./src/Soft/jedis_techniques)  
