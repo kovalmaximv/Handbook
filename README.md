@@ -40,9 +40,10 @@
 [🦄 Unique ID generator](./src/SystemDesign/UniqueIDGenerator)  
 [✂️ Url shortener](./src/SystemDesign/UrlShortener)  
 [🕸 Web crawler](./src/SystemDesign/WebCrawler)  
-[📺 Youtube](./src/SystemDesign/Youtube)
-[🍽️ Restaurant](./src/SystemDesign/RestaurantReservation)
-[🏆 Top sellers](./src/SystemDesign/TopSellers)
+[📺 Youtube](./src/SystemDesign/Youtube)  
+[🍽️ Restaurant](./src/SystemDesign/RestaurantReservation)  
+[🏆 Top sellers](./src/SystemDesign/TopSellers)  
+[🔎 Search Engine (like google)](./src/SystemDesign/SearchEngine)
 
 ## Книги на софт скиллы
 [📝 Джедайские техники](./src/Soft/jedis_techniques)  
