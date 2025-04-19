@@ -28,3 +28,5 @@
 
 # Источники
 1) Фундаментальный подход к программной архитектуре - Ричардс М., Форд Н.
+2) System design interview an insider's guide - Alex Xu
+3) Udemy course "Mastering the System Design" by Frank Kane (former Amazon software engineer)

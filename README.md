@@ -12,8 +12,9 @@
 [💁‍♂️ Jenkins 101](src/DEVOPS/Jenkins)
 
 ## Tools
-[☘️Kafka(Work in progress)](./src/tools/Kafka)  
+[☘️Kafka(WORK IN PROGRESS)](./src/tools/Kafka)  
 [🎺Kafka Streams](./src/tools/KafkaStreams)
+[🔗Kafka connect (TO BE SOON)]()
 
 ## Общеобразовательное
 [🌐 Компьютерные сети](./src/Common/Computer_network)  
