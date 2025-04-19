@@ -22,7 +22,7 @@
 [🧹Clean Code](./src/Common/CleanCode)
 
 ## Архитектурная секция
-[🏗 Основы архитектуры](./src/SystemDesign/Architecture101)  
+[🏗 Основы архитектуры и нюансы SystemDesign](./src/SystemDesign/Architecture101)  
 [💼 DDD](./src/Common/DDD)   
 [🥅 Api Gateway](./src/SystemDesign/API_Gateway)  
 [🎫 Event Sourcing](./src/SystemDesign/EventSourcing)  
