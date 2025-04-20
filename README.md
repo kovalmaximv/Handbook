@@ -13,7 +13,7 @@
 
 ## Tools
 [☘️Kafka(WORK IN PROGRESS)](./src/tools/Kafka)  
-[🎺Kafka Streams](./src/tools/KafkaStreams)
+[🎺Kafka Streams](./src/tools/KafkaStreams)  
 [🔗Kafka connect (TO BE SOON)]()
 
 ## Общеобразовательное
