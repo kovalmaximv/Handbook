@@ -14,7 +14,7 @@
 ## Tools
 [☘️Kafka(WORK IN PROGRESS)](./src/tools/Kafka)  
 [🎺Kafka Streams](./src/tools/KafkaStreams)  
-[🔗Kafka connect (TO BE SOON)]()
+[🔗Kafka connect (TO BE SOON)]()  
 [👁️Cassandra](./src/tools/Cassandra)
 
 ## Общеобразовательное
@@ -50,6 +50,4 @@
 [🏨 Booking](./src/SystemDesign/Booking)
 
 ## Книги на софт скиллы
-[📝 Джедайские техники](./src/Soft/jedis_techniques)  
-[🐈 Как пасти котов](./src/Soft/pasti_cotov/README.md)  
-[🥂 Мама, я тимлид](./src/Soft/mama_ya_teamlead/README.md)
+[📝 Джедайские техники](./src/Soft/jedis_techniques/README.md)  
