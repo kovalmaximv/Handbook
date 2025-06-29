@@ -15,7 +15,8 @@
 [☘️Kafka(WORK IN PROGRESS)](./src/tools/Kafka)  
 [🎺Kafka Streams](./src/tools/KafkaStreams)  
 [🔗Kafka connect (TO BE SOON)]()  
-[👁️Cassandra](./src/tools/Cassandra)
+[👁️Cassandra](./src/tools/Cassandra)  
+[🏠ClickHouse(WORK IN PROGRESS)](./src/tools/ClickHouse)
 
 ## Общеобразовательное
 [🌐 Компьютерные сети](./src/Common/Computer_network)  
