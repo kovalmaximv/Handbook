@@ -20,6 +20,7 @@
 
 ## Общеобразовательное
 [🌐 Компьютерные сети](./src/Common/Computer_network)  
+[💬 HTTP](./src/Common/HTTP)  
 [🧼 SOAP](./src/Common/SOAP)  
 [🐗 Высоконагруженные приложения](./src/Common/Highload)  
 [🧹Clean Code](./src/Common/CleanCode)
